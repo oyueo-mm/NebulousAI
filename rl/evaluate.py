@@ -101,10 +101,13 @@ def main() -> None:
 
     torch_act = None
     if args.model:
-        from stable_baselines3 import PPO
         from stable_baselines3.common.vec_env import VecNormalize
 
-        model = PPO.load(args.model, device="cpu")
+        from .envs import action_masks_from_obs
+        from .train import algorithm_class
+
+        model = algorithm_class(cfg).load(args.model, device="cpu")
+        masking = cfg.get("algorithm") == "maskable_ppo"
         vn = Path(args.model).with_name(Path(args.model).stem + "_vecnormalize.pkl")
         dummy = NebulousVecEnv(1, {"scenarios": [scenarios[0]]})
         vecnorm = VecNormalize.load(str(vn), dummy) if vn.exists() else None
@@ -114,7 +117,8 @@ def main() -> None:
 
         def torch_act(obs: np.ndarray) -> np.ndarray:
             x = vecnorm.normalize_obs(obs) if vecnorm is not None else obs
-            a, _ = model.predict(x, deterministic=True)
+            kw = {"action_masks": action_masks_from_obs(obs)} if masking else {}
+            a, _ = model.predict(x, deterministic=True, **kw)
             return a
 
     entries: list[tuple[str, dict[str, Any]]] = [(h, {"learner_policy": h}) for h in args.heuristics]

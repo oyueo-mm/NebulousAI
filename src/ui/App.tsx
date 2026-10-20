@@ -42,11 +42,11 @@ export function App() {
   const started = useRef<string>('');
 
   useEffect(() => {
-    fetchModels(import.meta.env.BASE_URL).then(({ files, errors }) => {
+    fetchModels(import.meta.env.BASE_URL).then(({ files, errors, defaultId }) => {
       setModels(files);
       setModelErrors(errors);
       const hasPpo = files.some((f) => f.trained);
-      const preferred = files.find((f) => f.trained) ?? files[0];
+      const preferred = files.find((f) => f.id === defaultId);
       const fresh = (m: 'play' | 'watch') => withAvailableModels({ ...defaultArena(m, hasPpo), ppoModel: preferred?.id ?? 'ppo-v1' }, files);
       const next = { play: fresh('play'), watch: fresh('watch') };
       setArena(next);

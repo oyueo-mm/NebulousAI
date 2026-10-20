@@ -34,6 +34,16 @@ def action_space() -> spaces.Discrete:
     return spaces.Discrete(NUM_ACTIONS)
 
 
+def action_masks_from_obs(obs: np.ndarray) -> np.ndarray:
+    """act-v1 validity from raw obs-v1 rows (same rule as actionMask() in src/ai/rl.ts):
+    moves always allowed; split only if self.canSplit (obs[2]); eject only if self.canEject (obs[3])."""
+    obs = np.atleast_2d(obs)
+    special = np.arange(NUM_ACTIONS) % 3
+    can_split = obs[:, 2:3] > 0.5
+    can_eject = obs[:, 3:4] > 0.5
+    return (special == 0) | ((special == 1) & can_split) | ((special == 2) & can_eject)
+
+
 class NebulousVecEnv(VecEnv):
     """`num_envs` single-learner environments hosted by one Node process.
 
@@ -56,6 +66,11 @@ class NebulousVecEnv(VecEnv):
         self._actions: np.ndarray | None = None
         self._t0 = time.time()
         self.episode_infos: list[dict[str, Any]] = []
+        self._last_obs = np.zeros((num_envs, OBS_SIZE), dtype=np.float32)
+
+    def action_masks(self) -> np.ndarray:
+        """Masks for the observations last returned (raw, before VecNormalize) — used by MaskablePPO."""
+        return action_masks_from_obs(self._last_obs)
 
     def reset(self, seeds: list[int] | None = None) -> np.ndarray:
         """Resets every env; explicit `seeds` (one per env) make evaluation worlds identical across policies."""
@@ -64,7 +79,8 @@ class NebulousVecEnv(VecEnv):
             obs, _ = b.reset(seeds[start:start + n] if seeds is not None else None)
             out.append(obs)
             start += n
-        return np.concatenate(out)
+        self._last_obs = np.concatenate(out)
+        return self._last_obs
 
     def step_async(self, actions: np.ndarray) -> None:
         self._actions = np.asarray(actions).reshape(-1)
@@ -76,6 +92,7 @@ class NebulousVecEnv(VecEnv):
     def step_wait(self):
         parts = [b.step_recv() for b in self.bridges]
         obs = np.concatenate([p[0] for p in parts])
+        self._last_obs = obs
         rewards = np.concatenate([p[1] for p in parts])
         dones = np.concatenate([p[2] for p in parts])
         infos: list[dict[str, Any]] = []
@@ -115,6 +132,9 @@ class NebulousVecEnv(VecEnv):
         setattr(self, attr_name, value)
 
     def env_method(self, method_name: str, *method_args, indices=None, **method_kwargs) -> list[Any]:
+        if method_name == "action_masks":
+            masks = self.action_masks()
+            return [masks[i] for i in self._get_indices(indices)]
         return [getattr(self, method_name)(*method_args, **method_kwargs) for _ in self._get_indices(indices)]
 
     def env_is_wrapped(self, wrapper_class, indices=None) -> list[bool]:

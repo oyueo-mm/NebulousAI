@@ -1,1 +1,4 @@
-[]
+[
+  { "id": "ppo-v1", "file": "ppo-v1.json", "label": "PPO v1", "trained": true },
+  { "id": "ppo-untrained", "file": "ppo-untrained.json", "label": "PPO (untrained)", "trained": false }
+]

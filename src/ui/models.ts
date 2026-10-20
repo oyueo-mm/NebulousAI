@@ -5,11 +5,14 @@ export interface ModelIndexEntry {
   file: string;
   label: string;
   trained: boolean;
+  /** The model Play / Watch use for PPO agents by default. */
+  default?: boolean;
 }
 
 export interface LoadedModels {
   files: MlpModelFile[];
   errors: string[];
+  defaultId: string | null;
 }
 
 /** Fetches public/models/index.json and every model it lists; invalid files are reported, not fatal. */
@@ -19,10 +22,10 @@ export async function fetchModels(base: string): Promise<LoadedModels> {
   let index: ModelIndexEntry[] = [];
   try {
     const res = await fetch(`${base}models/index.json`);
-    if (!res.ok) return { files, errors: [`models/index.json: HTTP ${res.status}`] };
+    if (!res.ok) return { files, errors: [`models/index.json: HTTP ${res.status}`], defaultId: null };
     index = (await res.json()) as ModelIndexEntry[];
   } catch (err) {
-    return { files, errors: [`models/index.json: ${String(err)}`] };
+    return { files, errors: [`models/index.json: ${String(err)}`], defaultId: null };
   }
   await Promise.all(index.map(async (entry) => {
     try {
@@ -35,6 +38,10 @@ export async function fetchModels(base: string): Promise<LoadedModels> {
       errors.push(`${entry.file}: ${err instanceof Error ? err.message : String(err)}`);
     }
   }));
-  files.sort((a, b) => Number(b.trained) - Number(a.trained) || a.id.localeCompare(b.id));
-  return { files, errors };
+  // Keep the index order (newest first by convention).
+  const order = new Map(index.map((e, i) => [e.id, i]));
+  files.sort((a, b) => (order.get(a.id) ?? 0) - (order.get(b.id) ?? 0));
+  const loaded = new Set(files.map((f) => f.id));
+  const defaultId = index.find((e) => e.default && loaded.has(e.id))?.id ?? files.find((f) => f.trained)?.id ?? files[0]?.id ?? null;
+  return { files, errors, defaultId };
 }

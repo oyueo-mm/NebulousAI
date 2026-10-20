@@ -39,11 +39,20 @@ def stage_env_config(cfg: dict[str, Any], stage: dict[str, Any]) -> dict[str, An
     return {"scenarios": stage["scenarios"], "decisionInterval": cfg.get("decision_interval", 2), "reward": cfg.get("reward", {})}
 
 
+def algorithm_class(cfg: dict[str, Any]):
+    """'ppo' (default) or 'maskable_ppo' (sb3-contrib, invalid split/eject actions masked out)."""
+    if cfg.get("algorithm", "ppo") == "maskable_ppo":
+        from sb3_contrib import MaskablePPO
+
+        return MaskablePPO
+    return PPO
+
+
 def build_model(cfg: dict[str, Any], env, device: str, tensorboard: str | None) -> PPO:
     p = cfg["ppo"]
     act = {"tanh": th.nn.Tanh, "relu": th.nn.ReLU}[p.get("activation", "tanh")]
     arch = p.get("net_arch", [128, 128])
-    return PPO(
+    return algorithm_class(cfg)(
         "MlpPolicy", env, n_steps=p["n_steps"], batch_size=p["batch_size"], n_epochs=p["n_epochs"], learning_rate=p["learning_rate"],
         gamma=p["gamma"], gae_lambda=p["gae_lambda"], clip_range=p["clip_range"], ent_coef=p["ent_coef"], vf_coef=p["vf_coef"],
         max_grad_norm=p["max_grad_norm"], policy_kwargs={"net_arch": {"pi": arch, "vf": arch}, "activation_fn": act},
@@ -91,15 +100,16 @@ class CurveRecorder(BaseCallback):
 class SelfPlayRefresher(BaseCallback):
     """Every `every` timesteps, freezes the current policy and hands it to the opponents."""
 
-    def __init__(self, venv: NebulousVecEnv, vecnorm: VecNormalize, versions: dict[str, str], every: int):
+    def __init__(self, venv: NebulousVecEnv, vecnorm: VecNormalize, versions: dict[str, str], every: int, masking: bool = False):
         super().__init__()
-        self.venv, self.vecnorm, self.versions, self.every = venv, vecnorm, versions, every
+        self.venv, self.vecnorm, self.versions, self.every, self.masking = venv, vecnorm, versions, every, masking
         self.last = 0
 
     def push(self) -> None:
         from .export import policy_to_json
 
-        snap = policy_to_json(self.model, self.vecnorm, model_id=SELFPLAY_ID, label="self-play snapshot", trained=True, versions=self.versions)
+        snap = policy_to_json(self.model, self.vecnorm, model_id=SELFPLAY_ID, label="self-play snapshot", trained=True, versions=self.versions,
+                              masking=self.masking)
         self.venv.add_model(snap)
         self.last = self.num_timesteps
 
@@ -131,7 +141,7 @@ def main() -> None:
     stages = cfg["stages"]
     meta_path = out / "training_meta.json"
     meta: dict[str, Any] = json.loads(meta_path.read_text(encoding="utf-8")) if args.resume and meta_path.exists() else {
-        "algorithm": "PPO (Stable-Baselines3)", "config": args.config, "seed": cfg.get("seed", 0), "device": device,
+        "algorithm": "MaskablePPO (sb3-contrib)" if cfg.get("algorithm") == "maskable_ppo" else "PPO (Stable-Baselines3)", "config": args.config, "seed": cfg.get("seed", 0), "device": device,
         "stages": [], "curve": [], "wallSeconds": 0.0, "totalTimesteps": 0, "host": platform.platform(), "torch": th.__version__,
     }
     done_stages = {s["name"] for s in meta["stages"]}
@@ -152,7 +162,7 @@ def main() -> None:
 
     if last_ckpt is not None and last_ckpt.exists():
         vecnorm = VecNormalize.load(str(last_ckpt.with_name(last_ckpt.stem + "_vecnormalize.pkl")), venv)
-        model = PPO.load(str(last_ckpt), env=vecnorm, device=device)
+        model = algorithm_class(cfg).load(str(last_ckpt), env=vecnorm, device=device)
         print(f"resumed from {last_ckpt} at {model.num_timesteps:,} timesteps")
     else:
         vecnorm = VecNormalize(venv, norm_obs=norm.get("obs", True), norm_reward=norm.get("reward", True), clip_obs=norm.get("clip_obs", 10.0), gamma=cfg["ppo"]["gamma"])
@@ -167,10 +177,11 @@ def main() -> None:
         env_cfg = stage_env_config(cfg, stage)
         callbacks: list[BaseCallback] = [CurveRecorder(stage["name"], meta["curve"], venv)]
         if any(o.get("modelId") == SELFPLAY_ID for sc in stage["scenarios"] for o in sc["opponents"]):
-            callbacks.append(SelfPlayRefresher(venv, vecnorm, versions, every=int(stage.get("selfplay_refresh", 100_000))))
+            masking = cfg.get("algorithm") == "maskable_ppo"
+            callbacks.append(SelfPlayRefresher(venv, vecnorm, versions, every=int(stage.get("selfplay_refresh", 100_000)), masking=masking))
             # Register a snapshot before the new scenarios can reference it.
             from .export import policy_to_json
-            venv.add_model(policy_to_json(model, vecnorm, model_id=SELFPLAY_ID, label="self-play snapshot", trained=True, versions=versions))
+            venv.add_model(policy_to_json(model, vecnorm, model_id=SELFPLAY_ID, label="self-play snapshot", trained=True, versions=versions, masking=masking))
         venv.set_env_config(env_cfg)
         # Force fresh episodes under the new stage instead of finishing old-stage ones.
         model._last_obs = vecnorm.reset()  # type: ignore[assignment]

@@ -19,6 +19,7 @@ export class NeuralPolicy implements Policy {
     // Always draw, so the agent's RNG stream advances identically in both modes.
     const u = rng.next();
     const index = this.deterministic ? argmax(out.probs) : sampleCategorical(out.probs, u);
+    // (probs already exclude masked actions for models trained with masking)
     const trace: PolicyTrace = {
       kind: 'neural', modelId: this.model.file.id, trained: this.model.file.trained, action: index,
       probs: Array.from(out.probs), value: out.value, observation: Array.from(obs), deterministic: this.deterministic,

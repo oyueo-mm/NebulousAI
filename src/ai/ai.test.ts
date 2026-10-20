@@ -4,7 +4,7 @@ import { World } from '../engine/world';
 import { AggressivePolicy, GreedyPolicy, HybridPolicy, RandomPolicy, SurvivalPolicy } from './heuristics';
 import { perceive } from './perception';
 import {
-  ACTION_VERSION, MODEL_FORMAT, NUM_ACTIONS, OBS_LABELS, OBS_SIZE, OBS_VERSION, MlpPolicyModel, type MlpModelFile,
+  ACTION_VERSION, MODEL_FORMAT, NUM_ACTIONS, OBS_LABELS, OBS_SIZE, OBS_VERSION, MlpPolicyModel, type MlpModelFile, actionMask,
   computeReward, decodeAction, encodeObservation, sampleCategorical, softmax,
 } from './rl';
 
@@ -192,6 +192,20 @@ describe('MLP inference', () => {
     const short = tinyModel();
     short.actionNet.bias = [0];
     expect(() => new MlpPolicyModel(short)).toThrow();
+  });
+
+  it('action masking removes impossible splits / ejects exactly when the observation says so', () => {
+    const m = new MlpPolicyModel({ ...tinyModel(), actionMasking: true });
+    const obs = new Float32Array(OBS_SIZE);
+    obs[2] = 0; obs[3] = 1; // cannot split, can eject
+    const out = m.forward(obs);
+    expect(out.mask).toEqual(actionMask(obs));
+    for (let a = 0; a < NUM_ACTIONS; a++) {
+      if (a % 3 === 1) expect(out.probs[a]).toBe(0);
+      else expect(out.probs[a]).toBeGreaterThan(0);
+    }
+    expect(out.probs.reduce((s, p) => s + p, 0)).toBeCloseTo(1, 12);
+    expect(new MlpPolicyModel(tinyModel()).forward(obs).mask).toBeNull();
   });
 
   it('softmax is stable for large logits; sampling follows the CDF', () => {

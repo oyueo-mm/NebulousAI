@@ -3,6 +3,7 @@ torch>=2.2
 numpy>=1.26
 gymnasium>=1.0
 stable-baselines3>=2.4
+sb3-contrib>=2.4
 pettingzoo>=1.24
 tensorboard>=2.15
 pytest>=8

@@ -36,7 +36,7 @@ const report = runTournament(spec, models, (done, total) => {
 const out = arg('out');
 if (out) {
   mkdirSync(out, { recursive: true });
-  writeFileSync(join(out, `${spec.name}.json`), JSON.stringify(report, null, 1));
+  writeFileSync(join(out, `${spec.name}.json`), JSON.stringify(report));
   writeFileSync(join(out, `${spec.name}.csv`), reportToCsv(report));
 }
 const pct = (v: number) => `${(v * 100).toFixed(1)}%`;

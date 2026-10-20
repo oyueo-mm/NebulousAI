@@ -30,6 +30,21 @@ export function decodeAction(index: number): AgentAction {
   return { dx, dy, split: special === 1, eject: special === 2 };
 }
 
+/**
+ * act-v1 validity mask from an obs-v1 vector: movement is always allowed; split / eject
+ * only when self.canSplit / self.canEject are set (the same tests the engine applies).
+ */
+export function actionMask(obs: ArrayLike<number>): boolean[] {
+  const canSplit = obs[2] > 0.5, canEject = obs[3] > 0.5;
+  return Array.from({ length: NUM_ACTIONS }, (_, i) => {
+    const special = i % NUM_SPECIALS;
+    return special === 0 || (special === 1 && canSplit) || (special === 2 && canEject);
+  });
+}
+
+/** Logit assigned to masked actions, as in sb3-contrib's MaskableCategorical. */
+export const MASKED_LOGIT = -1e8;
+
 export function describeAction(index: number): string {
   return `${MOVE_NAMES[Math.floor(index / NUM_SPECIALS)]} · ${SPECIAL_NAMES[index % NUM_SPECIALS]}`;
 }
@@ -223,6 +238,8 @@ export interface MlpModelFile {
   rulesVersion: string;
   rewardVersion: string;
   activation: 'tanh' | 'relu';
+  /** 'float32': weights are written as the shortest decimal of a float32 and restored with Math.fround. */
+  weightPrecision?: 'float32' | 'float64';
   obsSize: number;
   numActions: number;
   /** Observation normalisation (VecNormalize): (x − mean) / sqrt(var + eps), clipped, rounded to float32. */
@@ -231,13 +248,18 @@ export interface MlpModelFile {
   actionNet: DenseLayer;
   valueNet: DenseLayer[];
   valueHead: DenseLayer;
+  /** Trained with invalid-action masking (sb3-contrib MaskablePPO); apply actionMask() at inference. */
+  actionMasking?: boolean;
   training?: Record<string, unknown>;
 }
 
 export interface PolicyOutput {
+  /** Raw network logits (before any mask). */
   logits: Float64Array;
+  /** Action distribution actually used: softmax of the (masked, if the model uses masking) logits. */
   probs: Float64Array;
   value: number;
+  mask: boolean[] | null;
 }
 
 export class MlpPolicyModel {
@@ -246,7 +268,7 @@ export class MlpPolicyModel {
 
   constructor(file: MlpModelFile) {
     validateModel(file);
-    this.file = file;
+    this.file = file.weightPrecision === 'float32' ? roundWeights(file) : file;
     this.act = file.activation === 'relu' ? (v) => (v > 0 ? v : 0) : Math.tanh;
   }
 
@@ -271,7 +293,10 @@ export class MlpPolicyModel {
     const logits = dense(this.file.actionNet, latentPi, (v) => v);
     const latentVf = this.trunk(x, this.file.valueNet);
     const value = dense(this.file.valueHead, latentVf, (v) => v)[0];
-    return { logits, probs: softmax(logits), value };
+    if (!this.file.actionMasking) return { logits, probs: softmax(logits), value, mask: null };
+    const mask = actionMask(obs);
+    const masked = logits.map((l, i) => (mask[i] ? l : MASKED_LOGIT));
+    return { logits, probs: softmax(masked), value, mask };
   }
 
   private trunk(x: Float64Array, layers: DenseLayer[]): Float64Array {
@@ -279,6 +304,11 @@ export class MlpPolicyModel {
     for (const layer of layers) h = dense(layer, h, this.act);
     return h;
   }
+}
+
+function roundWeights(file: MlpModelFile): MlpModelFile {
+  const r = (l: DenseLayer): DenseLayer => ({ weight: l.weight.map((row) => row.map(Math.fround)), bias: l.bias.map(Math.fround) });
+  return { ...file, policyNet: file.policyNet.map(r), actionNet: r(file.actionNet), valueNet: file.valueNet.map(r), valueHead: r(file.valueHead) };
 }
 
 function dense(layer: DenseLayer, x: Float64Array, act: (v: number) => number): Float64Array {
@@ -325,6 +355,7 @@ export function validateModel(f: MlpModelFile): void {
   if (f.actionVersion !== ACTION_VERSION) fail(`action encoding ${f.actionVersion} ≠ ${ACTION_VERSION}`);
   if (f.obsSize !== OBS_SIZE || f.numActions !== NUM_ACTIONS) fail('input/output size mismatch');
   if (f.activation !== 'tanh' && f.activation !== 'relu') fail('unsupported activation');
+  if (f.weightPrecision !== undefined && f.weightPrecision !== 'float32' && f.weightPrecision !== 'float64') fail('unknown weightPrecision');
   const check = (layers: DenseLayer[], inWidth: number, name: string): number => {
     let w = inWidth;
     layers.forEach((l, k) => {
