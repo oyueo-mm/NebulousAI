@@ -18,6 +18,7 @@ export interface ParticipantSpec {
   modelId?: string;
   deterministic?: boolean;
   startMass?: number;
+  noRespawn?: boolean;
 }
 
 export interface MatchSetup {
@@ -116,7 +117,7 @@ export class Match {
     this.kinds = setup.participants.map((p) => p.kind);
     this.world = new World({
       seed: this.setup.seed,
-      agents: setup.participants.map((p, i) => ({ name: p.name ?? defaultName(p, i), startMass: p.startMass })),
+      agents: setup.participants.map((p, i) => ({ name: p.name ?? defaultName(p, i), startMass: p.startMass, noRespawn: p.noRespawn ?? p.kind === 'human' })),
       config: setup.config,
       spawnRotation: this.setup.spawnRotation,
     });

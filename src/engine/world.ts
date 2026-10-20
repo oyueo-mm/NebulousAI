@@ -9,6 +9,8 @@ export interface AgentSpec {
   name: string;
   /** Overrides config.startMass for this agent (curriculum stages, handicaps). */
   startMass?: number;
+  /** Never respawn this agent even when config.respawn is on (e.g. the human player). */
+  noRespawn?: boolean;
 }
 
 export interface WorldOptions {
@@ -56,6 +58,7 @@ export class World {
   private readonly foodGrid: SpatialHash;
   private readonly boostFactor: number;
   private readonly startMasses: number[];
+  private noRespawn: boolean[];
   // Scratch buffers reused every tick.
   private order: Cell[] = [];
   private ownerCells: Cell[][] = [];
@@ -73,6 +76,7 @@ export class World {
     this.foodGrid = new SpatialHash(cfg.worldWidth, cfg.worldHeight, FOOD_GRID);
     this.boostFactor = Math.exp(-cfg.boostDecay * cfg.tickSeconds);
     this.startMasses = options.agents.map((a) => a.startMass ?? cfg.startMass);
+    this.noRespawn = options.agents.map((a) => a.noRespawn === true);
     for (const m of this.startMasses) if (!(m > 0 && Number.isFinite(m))) throw new Error('agent startMass must be > 0');
 
     this.agents = options.agents.map((spec, i) => newAgent(i, spec.name, AGENT_HUES[i % AGENT_HUES.length] + 7 * Math.floor(i / AGENT_HUES.length)));
@@ -543,7 +547,7 @@ export class World {
     const cfg = this.config;
     if (cfg.respawn) {
       for (const a of this.agents) {
-        if (a.alive || tEnd < a.respawnAt) continue;
+        if (a.alive || tEnd < a.respawnAt || this.noRespawn[a.id]) continue;
         const p = this.safeSpawnPoint();
         const mass = this.startMasses[a.id];
         this.addCell(a.id, p.x, p.y, mass, 0);
@@ -702,7 +706,7 @@ export class World {
     return {
       format: 'nebulous-world', version: 1, seed: this.seed, tick: this.tick, config: { ...this.config },
       rngState: this.rng.getState(), nextId: this.nextId, foodAccumulator: this.foodAccumulator,
-      startMasses: [...this.startMasses],
+      startMasses: [...this.startMasses], noRespawn: [...this.noRespawn],
       cells: this.cells.map((c) => ({ ...c })), food: this.food.map((f) => ({ ...f })),
       pellets: this.pellets.map((p) => ({ ...p })), thorns: this.thorns.map((t) => ({ ...t })),
       agents: this.agents.map((a) => ({ ...a, action: { ...a.action }, stats: { ...a.stats } })),
@@ -725,6 +729,7 @@ export class World {
     w.agents = s.agents.map((a) => ({ ...a, action: { ...a.action }, stats: { ...a.stats } }));
     w.ledger = { ...s.ledger };
     w.lastEatenBy = [...s.lastEatenBy];
+    w.noRespawn = s.agents.map((_, i) => s.noRespawn?.[i] === true);
     w.ownerCells = w.agents.map(() => []);
     w.rebuildFoodGrid();
     return w;
@@ -741,6 +746,7 @@ export interface WorldSnapshot {
   nextId: number;
   foodAccumulator: number;
   startMasses: number[];
+  noRespawn?: boolean[];
   cells: Cell[];
   food: Food[];
   pellets: Pellet[];
