@@ -132,6 +132,18 @@ describe('movement', () => {
     checkInvariants(w);
   });
 
+  it('a cell that grows while pressed against a wall stays inside it (found by the Python rule checker)', () => {
+    const w = arena(1);
+    const c = w.placeCell(0, 0, 1500, 20, { replace: true });
+    expect(c.x).toBeCloseTo(c.r, 9);
+    w.placeFood(c.x + 2, 1500, 400);
+    w.step([go(-1, 0)]);
+    const grown = w.cells[0];
+    expect(grown.mass).toBeCloseTo(420, 9);
+    expect(grown.x).toBeGreaterThanOrEqual(grown.r - 1e-9);
+    checkInvariants(w);
+  });
+
   it('non-finite actions are treated as idle', () => {
     const w = arena(1);
     w.placeCell(0, 1500, 1500, 20, { replace: true });

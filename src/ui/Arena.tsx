@@ -1,9 +1,8 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { Suspense, lazy, useEffect, useMemo, useRef, useState } from 'react';
 import { DEFAULT_CONFIG } from '../engine/config';
 import { visionRadius } from '../engine/physics';
 import type { AgentAction } from '../engine/types';
 import type { MlpModelFile } from '../ai/rl';
-import { AnalyticsPanel } from './AnalyticsPanel';
 import { GameCanvas, type CanvasHandle } from './GameCanvas';
 import { Inspector } from './Inspector';
 import { Badge, IconButton, Stat, formatTime } from './kit';
@@ -11,6 +10,8 @@ import { SettingsPanel } from './SettingsPanel';
 import type { ArenaSettings, UiSettings } from './settings';
 import { TouchControls } from './TouchControls';
 import type { useSimulation } from './useSimulation';
+
+const AnalyticsPanel = lazy(() => import('./AnalyticsPanel').then((m) => ({ default: m.AnalyticsPanel })));
 
 const SPEEDS = [0.25, 0.5, 1, 2, 4, 8, 16, 1000];
 
@@ -110,7 +111,7 @@ export function Arena(props: Props) {
             <div className="pointer-events-none absolute left-3 top-3 grid grid-cols-4 gap-x-4 gap-y-1.5 rounded-xl bg-white/85 px-3.5 py-2.5 shadow-sm ring-1 ring-slate-200 backdrop-blur sm:grid-cols-8" data-testid="hud">
               <Stat label="Mass" value={<span data-testid="hud-mass">{Math.round(human.mass)}</span>} />
               <Stat label="Rank" value={`${human.rank}/${agents.length}`} />
-              <Stat label="Cells" value={human.cells} />
+              <Stat label="Cells" value={<span data-testid="hud-cells">{human.cells}</span>} />
               <Stat label="Kills" value={human.kills} />
               <Stat label="Eaten" value={human.cellsEaten} />
               <Stat label="Alive" value={formatTime(human.survival)} />
@@ -198,7 +199,7 @@ export function Arena(props: Props) {
         </div>
         {ui.bottomOpen && (
           <div className="h-64 shrink-0 border-t border-slate-200 bg-white">
-            <AnalyticsPanel agents={agents} history={sim.history} log={sim.log} stats={stats} fps={fps} selectedId={selectedId} onSelect={(id) => { setSelectedId(id); if (mode === 'watch') setFollow('selected'); }} />
+            <Suspense fallback={null}><AnalyticsPanel agents={agents} history={sim.history} log={sim.log} stats={stats} fps={fps} selectedId={selectedId} onSelect={(id) => { setSelectedId(id); if (mode === 'watch') setFollow('selected'); }} /></Suspense>
           </div>
         )}
       </div>

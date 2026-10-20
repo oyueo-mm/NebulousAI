@@ -1,0 +1,346 @@
+{
+  "id": "ppo-v1",
+  "seed": 1000000,
+  "num_envs": 32,
+  "processes": 4,
+  "torch_threads": 4,
+  "decision_interval": 2,
+  "reward": {},
+  "normalize": {
+    "obs": true,
+    "reward": true,
+    "clip_obs": 10.0
+  },
+  "ppo": {
+    "n_steps": 256,
+    "batch_size": 2048,
+    "n_epochs": 5,
+    "learning_rate": 0.0003,
+    "gamma": 0.995,
+    "gae_lambda": 0.95,
+    "clip_range": 0.2,
+    "ent_coef": 0.01,
+    "vf_coef": 0.5,
+    "max_grad_norm": 0.5,
+    "net_arch": [
+      128,
+      128
+    ],
+    "activation": "tanh"
+  },
+  "stages": [
+    {
+      "name": "A-forage",
+      "description": "alone in the arena: find and collect food",
+      "timesteps": 400000,
+      "scenarios": [
+        {
+          "name": "forage",
+          "opponents": [],
+          "maxSeconds": 60,
+          "config": {
+            "thornCount": 0
+          }
+        }
+      ]
+    },
+    {
+      "name": "B-evade",
+      "description": "large Greedy/Aggressive predators: survive while eating",
+      "timesteps": 700000,
+      "scenarios": [
+        {
+          "name": "evade",
+          "weight": 3,
+          "maxSeconds": 90,
+          "learnerStartMass": [
+            20,
+            45
+          ],
+          "config": {
+            "respawn": true,
+            "thornCount": 6
+          },
+          "opponents": [
+            {
+              "kind": "greedy",
+              "count": 3,
+              "startMass": [
+                110,
+                260
+              ]
+            },
+            {
+              "kind": "aggressive",
+              "count": 2,
+              "startMass": [
+                110,
+                260
+              ]
+            }
+          ]
+        },
+        {
+          "name": "forage",
+          "weight": 1,
+          "opponents": [],
+          "maxSeconds": 60,
+          "config": {
+            "thornCount": 0
+          }
+        }
+      ]
+    },
+    {
+      "name": "C-hunt",
+      "description": "small prey to chase and split-attack, plus a few equals",
+      "timesteps": 700000,
+      "scenarios": [
+        {
+          "name": "hunt",
+          "weight": 3,
+          "maxSeconds": 90,
+          "learnerStartMass": [
+            70,
+            140
+          ],
+          "config": {
+            "respawn": true
+          },
+          "opponents": [
+            {
+              "kind": "random",
+              "count": 4,
+              "startMass": [
+                12,
+                30
+              ]
+            },
+            {
+              "kind": "survival",
+              "count": 3,
+              "startMass": [
+                15,
+                35
+              ]
+            },
+            {
+              "kind": "greedy",
+              "count": 2,
+              "startMass": [
+                40,
+                90
+              ]
+            }
+          ]
+        },
+        {
+          "name": "evade",
+          "weight": 1,
+          "maxSeconds": 90,
+          "learnerStartMass": [
+            20,
+            45
+          ],
+          "config": {
+            "respawn": true,
+            "thornCount": 6
+          },
+          "opponents": [
+            {
+              "kind": "greedy",
+              "count": 3,
+              "startMass": [
+                110,
+                260
+              ]
+            },
+            {
+              "kind": "aggressive",
+              "count": 2,
+              "startMass": [
+                110,
+                260
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "D-mixed",
+      "description": "the full game: two of every heuristic at equal start mass",
+      "timesteps": 3000000,
+      "scenarios": [
+        {
+          "name": "mixed",
+          "weight": 4,
+          "maxSeconds": 150,
+          "config": {
+            "respawn": true
+          },
+          "opponents": [
+            {
+              "kind": "random",
+              "count": 2
+            },
+            {
+              "kind": "greedy",
+              "count": 2
+            },
+            {
+              "kind": "survival",
+              "count": 2
+            },
+            {
+              "kind": "aggressive",
+              "count": 2
+            },
+            {
+              "kind": "hybrid",
+              "count": 2
+            }
+          ]
+        },
+        {
+          "name": "hunt",
+          "weight": 1,
+          "maxSeconds": 90,
+          "learnerStartMass": [
+            70,
+            140
+          ],
+          "config": {
+            "respawn": true
+          },
+          "opponents": [
+            {
+              "kind": "random",
+              "count": 4,
+              "startMass": [
+                12,
+                30
+              ]
+            },
+            {
+              "kind": "survival",
+              "count": 3,
+              "startMass": [
+                15,
+                35
+              ]
+            },
+            {
+              "kind": "greedy",
+              "count": 2,
+              "startMass": [
+                40,
+                90
+              ]
+            }
+          ]
+        },
+        {
+          "name": "evade",
+          "weight": 1,
+          "maxSeconds": 90,
+          "learnerStartMass": [
+            20,
+            45
+          ],
+          "config": {
+            "respawn": true,
+            "thornCount": 6
+          },
+          "opponents": [
+            {
+              "kind": "greedy",
+              "count": 3,
+              "startMass": [
+                110,
+                260
+              ]
+            },
+            {
+              "kind": "aggressive",
+              "count": 2,
+              "startMass": [
+                110,
+                260
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "E-selfplay",
+      "description": "mixed heuristics plus frozen copies of itself (snapshot refreshed every 200k steps)",
+      "timesteps": 1600000,
+      "selfplay_refresh": 200000,
+      "scenarios": [
+        {
+          "name": "selfplay",
+          "weight": 2,
+          "maxSeconds": 150,
+          "config": {
+            "respawn": true
+          },
+          "opponents": [
+            {
+              "kind": "ppo",
+              "count": 3,
+              "modelId": "selfplay-snapshot"
+            },
+            {
+              "kind": "greedy",
+              "count": 2
+            },
+            {
+              "kind": "survival",
+              "count": 1
+            },
+            {
+              "kind": "aggressive",
+              "count": 2
+            },
+            {
+              "kind": "hybrid",
+              "count": 2
+            }
+          ]
+        },
+        {
+          "name": "mixed",
+          "weight": 2,
+          "maxSeconds": 150,
+          "config": {
+            "respawn": true
+          },
+          "opponents": [
+            {
+              "kind": "random",
+              "count": 2
+            },
+            {
+              "kind": "greedy",
+              "count": 2
+            },
+            {
+              "kind": "survival",
+              "count": 2
+            },
+            {
+              "kind": "aggressive",
+              "count": 2
+            },
+            {
+              "kind": "hybrid",
+              "count": 2
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

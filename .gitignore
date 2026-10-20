@@ -12,3 +12,4 @@ rl/checkpoints/
 *.zip
 !rl/models/*.zip
 .pytest_cache/
+rl/*.log

@@ -225,7 +225,7 @@ export interface MlpModelFile {
   activation: 'tanh' | 'relu';
   obsSize: number;
   numActions: number;
-  /** Observation normalisation (VecNormalize): (x − mean) / sqrt(var + eps), clipped. */
+  /** Observation normalisation (VecNormalize): (x − mean) / sqrt(var + eps), clipped, rounded to float32. */
   obsNorm: { mean: number[]; var: number[]; clip: number; eps: number } | null;
   policyNet: DenseLayer[];
   actionNet: DenseLayer;
@@ -257,7 +257,8 @@ export class MlpPolicyModel {
       let v = obs[i];
       if (f.obsNorm) {
         v = (v - f.obsNorm.mean[i]) / Math.sqrt(f.obsNorm.var[i] + f.obsNorm.eps);
-        v = clip(v, -f.obsNorm.clip, f.obsNorm.clip);
+        // SB3's VecNormalize clips, then casts to float32 before the network sees the value.
+        v = Math.fround(clip(v, -f.obsNorm.clip, f.obsNorm.clip));
       }
       x[i] = v;
     }

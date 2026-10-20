@@ -1,13 +1,15 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { Suspense, lazy, useCallback, useEffect, useRef, useState } from 'react';
 import { RULES_VERSION } from '../engine/config';
 import type { MlpModelFile } from '../ai/rl';
 import { Arena } from './Arena';
-import { LabView } from './LabView';
 import { Badge, Logo, downloadText, formatTime } from './kit';
 import { fetchModels } from './models';
 import { DEFAULT_UI, defaultArena, parseExperiment, toSetup, type ArenaSettings, type ExperimentFile, type Mode, type UiSettings } from './settings';
-import { TournamentView } from './TournamentView';
 import { useSimulation } from './useSimulation';
+
+// Chart-heavy pages load on demand so the game starts with a smaller bundle.
+const TournamentView = lazy(() => import('./TournamentView').then((m) => ({ default: m.TournamentView })));
+const LabView = lazy(() => import('./LabView').then((m) => ({ default: m.LabView })));
 
 const MODES: { id: Mode; label: string }[] = [
   { id: 'play', label: 'Play' },
@@ -156,8 +158,10 @@ export function App() {
             onArena={(a) => setArena((s) => ({ ...s, [mode]: a }))} ui={ui} onUi={setUi} onRestart={restart} onSave={save} onLoad={load}
           />
         )}
-        {models !== null && mode === 'tournament' && <TournamentView models={models} />}
-        {models !== null && mode === 'lab' && <LabView models={models} errors={modelErrors} />}
+        <Suspense fallback={<div className="flex flex-1 items-center justify-center text-sm text-slate-400">Loading…</div>}>
+          {models !== null && mode === 'tournament' && <TournamentView models={models} />}
+          {models !== null && mode === 'lab' && <LabView models={models} errors={modelErrors} />}
+        </Suspense>
         {notice && <div className="absolute left-1/2 top-3 z-30 -translate-x-1/2 rounded-lg bg-slate-900 px-3 py-2 text-sm text-white shadow-lg" role="status">{notice}</div>}
       </div>
     </div>

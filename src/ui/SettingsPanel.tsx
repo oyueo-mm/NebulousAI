@@ -29,7 +29,7 @@ export function SettingsPanel({ mode, arena, onArena, ui, onUi, models, dirty, o
       <div className="min-h-0 flex-1 overflow-y-auto">
         {inspector && <Section title="Inspector">{inspector}</Section>}
 
-        <Section title={mode === 'play' ? 'Opponents' : 'AI agents'} right={<span className="text-xs tabular-nums text-slate-400">{total}{mode === 'play' ? ' + you' : ''}</span>}>
+        <Section title={mode === 'play' ? 'Opponents' : 'AI agents'} right={<span className="text-xs tabular-nums text-slate-400"><span data-testid="bot-total">{total}</span>{mode === 'play' ? ' + you' : ''}</span>}>
           {BOT_KINDS.map((k) => (
             <Stepper key={k} label={POLICY_LABELS[k]} value={arena.bots[k]} dot={KIND_COLOURS[k]} testId={`count-${k}`}
               max={k === 'ppo' && !hasModels ? 0 : MAX_BOTS - total + arena.bots[k]}

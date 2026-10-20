@@ -276,6 +276,8 @@ export class World {
       this.ledger.decayLost += c.mass - m;
       c.mass = m;
       c.r = massToRadius(c.mass, cfg);
+      // A cell that grew against a wall this tick must not poke through it.
+      this.clampCell(c);
     }
     for (const p of this.pellets) {
       if (p.alive && t + dt - p.bornAt >= cfg.ejectLifetime) {
