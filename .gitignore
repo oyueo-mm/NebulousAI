@@ -1,0 +1,14 @@
+node_modules/
+dist/
+dist-node/
+rl/bridge/dist/
+test-results/
+playwright-report/
+__pycache__/
+*.pyc
+.venv/
+rl/runs/
+rl/checkpoints/
+*.zip
+!rl/models/*.zip
+.pytest_cache/
