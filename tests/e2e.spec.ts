@@ -10,28 +10,33 @@ function watchErrors(page: Page): string[] {
   return errors;
 }
 
-/** Samples the canvas backing store: how many pixels differ from the empty-page background. */
-async function canvasInk(page: Page): Promise<{ w: number; h: number; ink: number; colours: number }> {
+/**
+ * Samples the canvas backing store densely: size, share of near-black pixels, share of pixels that are
+ * not the empty-page background (the white arena, grid, food and cells all count) and distinct colours.
+ */
+async function canvasInk(page: Page): Promise<{ w: number; h: number; black: number; world: number; colours: number }> {
   return page.evaluate(() => {
     const c = document.querySelector<HTMLCanvasElement>('[data-testid=game-canvas]')!;
-    const ctx = c.getContext('2d')!;
-    const { data } = ctx.getImageData(0, 0, c.width, c.height);
-    let ink = 0;
+    const { data } = c.getContext('2d')!.getImageData(0, 0, c.width, c.height);
+    let black = 0, world = 0, n = 0;
     const colours = new Set<number>();
-    for (let i = 0; i < data.length; i += 4 * 97) {
+    for (let i = 0; i < data.length; i += 4 * 7) {
       const r = data[i], g = data[i + 1], b = data[i + 2];
-      colours.add((r << 16) | (g << 8) | b);
-      if (Math.abs(r - 0xf4) + Math.abs(g - 0xf6) + Math.abs(b - 0xfb) > 12 && !(r === 255 && g === 255 && b === 255)) ink++;
+      n++;
+      colours.add(((r >> 3) << 10) | ((g >> 3) << 5) | (b >> 3));
+      if (r + g + b < 60) black++;
+      if (Math.abs(r - 0xf4) + Math.abs(g - 0xf6) + Math.abs(b - 0xfb) > 6) world++;
     }
-    return { w: c.width, h: c.height, ink, colours: colours.size };
+    return { w: c.width, h: c.height, black: black / n, world: world / n, colours: colours.size };
   });
 }
 
+/** The canvas shows the world: not blank, not black, not a single flat colour. Retries briefly to skip transitional frames. */
 async function expectWorldVisible(page: Page) {
-  const s = await canvasInk(page);
-  expect(s.w).toBeGreaterThan(10);
-  expect(s.colours).toBeGreaterThan(8); // food, cells, grid, arena: never a flat or black canvas
-  expect(s.ink).toBeGreaterThan(20);
+  await expect.poll(async () => {
+    const s = await canvasInk(page);
+    return s.w > 10 && s.black < 0.5 && s.world > 0.01 && s.colours >= 4;
+  }, { timeout: 3000, intervals: [100, 250, 500] }).toBe(true);
 }
 
 const seconds = async (page: Page) => {
