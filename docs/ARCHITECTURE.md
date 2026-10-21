@@ -93,10 +93,16 @@ exactly the reward the trainer sees. A per-agent RNG stream makes stochastic pol
   processes step in parallel (`NebulousVecEnv(processes=4)` ≈ 2.5× throughput on 8 threads).
 * `envs.py` — `NebulousVecEnv` (SB3 `VecEnv`, auto-reset, `terminal_observation`,
   `TimeLimit.truncated`), `NebulousEnv` (Gymnasium), `NebulousParallelEnv` (PettingZoo Parallel API).
-* `train.py` — curriculum PPO with `VecNormalize`, per-stage checkpoints, resume, CSV/TensorBoard logs,
-  self-play snapshots pushed into the bridge as frozen `ppo` opponents.
-* `export.py` — SB3 → `nebulous-mlp` JSON (+ PyTorch reference outputs for the equivalence test).
-* `evaluate.py` — held-out evaluation of any policy in the learner slot under identical seeds.
+* `train.py` — curriculum PPO / MaskablePPO with `VecNormalize`, per-stage checkpoints, resume,
+  `init_from` fine-tuning, CSV/TensorBoard logs, self-play snapshots pushed into the bridge as frozen
+  `ppo` opponents.
+* `imitate.py` — behaviour cloning + DAgger from heuristic teachers (bridge modes `quantizeLearner`,
+  `labelPolicy`), producing an SB3 checkpoint for `init_from`.
+* `export.py` — SB3 → `nebulous-mlp` JSON (+ PyTorch reference outputs for the equivalence test,
+  training curve, imitation and evaluation summaries).
+* `evaluate.py` / `report.py` — held-out evaluation of any policy in the learner slot under identical
+  seeds, rendered to Markdown.
+* `rules_reference.py` — the documented rules restated independently, used to check engine snapshots.
 
 ## Data formats
 

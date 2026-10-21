@@ -1,0 +1,55 @@
+{
+ "headless": true,
+ "results": [
+  {
+   "label": "watch default, 1x",
+   "agents": "12/12 alive",
+   "Render FPS": "60",
+   "Simulation UPS": "29",
+   "Actual sim speed": "0.98×",
+   "World step": "0.120 ms/tick",
+   "AI policies": "0.280 ms/tick",
+   "Worker frame": "0.30 ms"
+  },
+  {
+   "label": "watch default, Max speed",
+   "agents": "12/12 alive",
+   "Render FPS": "60",
+   "Simulation UPS": "1354",
+   "Actual sim speed": "45.12×",
+   "World step": "0.059 ms/tick",
+   "AI policies": "0.231 ms/tick",
+   "Worker frame": "12.32 ms"
+  },
+  {
+   "label": "50 heuristic agents, 1000 food, 1x",
+   "agents": "45/50 alive",
+   "Render FPS": "60",
+   "Simulation UPS": "29",
+   "Actual sim speed": "0.97×",
+   "World step": "0.127 ms/tick",
+   "AI policies": "0.760 ms/tick",
+   "Worker frame": "0.60 ms"
+  },
+  {
+   "label": "50 agents incl. 25 PPO, 1x",
+   "agents": "49/50 alive",
+   "Render FPS": "60",
+   "Simulation UPS": "30",
+   "Actual sim speed": "1.00×",
+   "World step": "0.167 ms/tick",
+   "AI policies": "2.367 ms/tick",
+   "Worker frame": "2.03 ms"
+  },
+  {
+   "label": "play default (you + 15 bots), 1x",
+   "agents": "16/16 alive",
+   "Render FPS": "60",
+   "Simulation UPS": "30",
+   "Actual sim speed": "1.01×",
+   "World step": "0.112 ms/tick",
+   "AI policies": "0.556 ms/tick",
+   "Worker frame": "0.46 ms"
+  }
+ ]
+}

@@ -1,7 +1,7 @@
 # Reinforcement learning
 
-Results of the shipped model are in [EXPERIMENTS.md](EXPERIMENTS.md). This document describes the
-environment, the interfaces and how training, evaluation and export work.
+Results are in [EXPERIMENTS.md](EXPERIMENTS.md). This document describes the environment, the
+interfaces and how training, imitation, evaluation and export work.
 
 ## Environment
 
@@ -27,7 +27,7 @@ does — **its death terminates the episode** (no suicide/restart loop is possib
 | Interfaces | `NebulousVecEnv` (SB3 VecEnv, N envs over k Node processes), `NebulousEnv` (Gymnasium), `NebulousParallelEnv` (PettingZoo Parallel, several learners in one world) |
 | Checks | `gymnasium.utils.env_checker.check_env`, SB3 `check_env`, PettingZoo `parallel_api_test` — all pass (`rl/tests`) |
 
-The PettingZoo environment is implemented and API-tested, but the shipped model was trained with the
+The PettingZoo environment is implemented and API-tested, but the shipped models were trained with the
 single-learner VecEnv plus frozen self-play opponents (see Stage E) — simultaneous multi-learner
 training has not been run.
 
@@ -51,9 +51,15 @@ when an out-of-vision cell moves. Values are clipped to [−3, 3] by the encoder
 ## Action — `act-v1` (Discrete 27)
 
 `index = move × 3 + special`; move 0 = stay, move k ∈ 1…8 = heading `(k − 1) · 45°` in world space
-(1 = E, 3 = S, 5 = W, 7 = N); special 0 = none, 1 = split, 2 = eject. Impossible specials are passed
-to the engine, ignored, counted (`invalidSplits/Ejects`) and cost −0.01 — the agent must learn when a
-split is possible (the `canSplit` / `canEject` features tell it). A unit test pins the whole table.
+(1 = E, 3 = S, 5 = W, 7 = N); special 0 = none, 1 = split, 2 = eject. A unit test pins the whole table.
+
+Impossible specials (cooldown, too small, at the cell cap) are passed to the engine, ignored, counted
+(`invalidSplits/Ejects`) and cost −0.01. Models v2 – v4 additionally use **invalid-action masking**
+(sb3-contrib MaskablePPO): an action whose special is impossible according to the observation's own
+`canSplit` / `canEject` features gets logit −10⁸ (these features are exactly the engine's validity
+test). The mask is a property of the exported model (`actionMasking: true`) and is applied identically
+by the TypeScript inference. v1, trained without it, emitted ≈ 540 impossible requests per episode in
+the hunt scenario — see EXPERIMENTS.md.
 
 ## Reward — `reward-v1`
 
@@ -83,7 +89,7 @@ Design notes and exploit checks:
 
 ## Algorithm — PPO (Stable-Baselines3)
 
-`rl/configs/ppo_v1.json`: MlpPolicy with separate 128-128 tanh networks for policy and value,
+`rl/configs/ppo_v1.json` (v2: identical plus masking): MlpPolicy with separate 128-128 tanh networks for policy and value,
 `n_steps = 256` × 32 envs per rollout (8 192 steps), batch 2 048, 5 epochs, lr 3e-4, γ = 0.995,
 λ = 0.95, clip 0.2, entropy 0.01, VecNormalize on observations and rewards. 32 environments run in
 4 Node bridge processes. Discrete actions use SB3's standard categorical distribution — no custom
@@ -98,6 +104,14 @@ distribution.
 | C-hunt | small Random/Survival prey + 2 Greedy, learner 70–140 (3), evade (1) | chase, split-attack |
 | D-mixed | 2 of every heuristic, equal start mass, 150 s (4), hunt (1), evade (1) | the full game |
 | E-selfplay | 3 frozen copies of itself + 7 heuristics (2), mixed (2) | self-play; snapshot refreshed every 200 k steps |
+
+Later runs continue from a checkpoint (`init_from`: weights and VecNormalize statistics) with
+overridden learning rate, entropy coefficient and clip range:
+
+| run | starts from | stages |
+|---|---|---|
+| v3 | v2 final | F: 12 M steps of the D mix · G: 4 M steps of the E mix (lr 2e-4, entropy 0.005) |
+| v4 | bc-v4 (imitation) | H: 10 M steps of the D mix · I: 3 M steps of the E mix (lr 1e-4, entropy 0.002, clip 0.1) |
 
 Stage switches take effect at each environment's next reset; the trainer forces a reset so a stage
 starts clean. In Stage E the current policy is exported to the bridge as `selfplay-snapshot` (weights
@@ -120,6 +134,24 @@ Outputs in `rl/checkpoints/ppo-v1/`: `<stage>.zip` + `<stage>_vecnormalize.pkl` 
 shown in the RL Lab). `--device cuda` uses a GPU when available; on Colab, install Node 20+ and run the
 same commands. Checkpoints are git-ignored; only the exported browser JSON is committed.
 
+## Imitation initialisation (`rl/imitate.py`, `rl/configs/bc_v4.json`)
+
+Pure PPO did not reach heuristic level in the full game, so v4 starts from imitation:
+
+1. **Demonstrations**: for each scenario its best heuristic (by the held-out evaluation) drives the
+   learner slot, restricted to the 27 act-v1 actions (`quantizeLearner`; `encodeAction` maps a heading
+   to the nearest of 8 directions, throttle < 0.3 → stay), so every label is reproducible by the
+   network: Hybrid (forage, evade), Greedy (hunt), Survival (mixed, self-play). 880 k states.
+2. **DAgger**, 3 rounds: the network plays (argmax) and the teacher only *labels* the visited states
+   (`labelPolicy`); the aggregated set (2.2 M states) is trained on again. Plain behaviour cloning died
+   within 34 s in the full game despite 68 % label accuracy; DAgger removed the compounding errors.
+3. **Initialisation**: VecNormalize statistics are fitted to the demonstrations; the policy is trained
+   with masked cross-entropy, the value head on discounted Monte-Carlo returns of the normalised reward
+   of the teachers' own trajectories, so PPO does not start with a random critic.
+4. The checkpoint is continued by MaskablePPO (`ppo_v4.json`, `init_from`).
+
+The heuristics never run inside the exported model; they only produced training labels.
+
 ## Export and browser inference
 
 ```bash
@@ -139,17 +171,16 @@ VecNormalize does. End to end, `rl.evaluate` runs the same seeds once with actio
 once with the TypeScript policy inside the bridge and reports how many episodes are identical.
 
 The untrained model has the same architecture with random initial weights and no normalisation; it is
-labelled "untrained" everywhere in the UI.
+labelled "untrained" everywhere in the UI. Weights are written as the shortest decimal that round-trips
+to the same float32 (`weightPrecision: "float32"`, restored with `Math.fround`), which halves the file
+size without changing a single bit of the network.
 
 ## Evaluation
 
-```bash
-python -m rl.evaluate --model rl/checkpoints/ppo-v1/final.zip --model-json public/models/ppo-v1.json \
-  --untrained-json public/models/ppo-untrained.json --episodes 48 --out docs/results/rl_eval.json
-npm run tournament -- --preset ppo-mixed --seeds 20 --out public/results
-```
-
-`rl.evaluate` puts each policy (5 heuristics, untrained network, trained network via TypeScript argmax
-and sampling, trained network via PyTorch) in the learner slot of every scenario, on the same 48
-held-out seeds. The tournament runner compares policies as equals in free-for-all matches with spawn
-rotation. Both report means with 95 % confidence intervals.
+The full commands are in [EXPERIMENTS.md](EXPERIMENTS.md#reproduce). `rl.evaluate` puts each policy
+(5 heuristics, optionally restricted to the discrete actions; the untrained network; any number of
+exported networks through the TypeScript inference; the evaluated network through PyTorch) in the
+learner slot of every scenario, on the same 48 held-out seeds, with one fixed self-play opponent for
+all rows, and reports how many episodes PyTorch and TypeScript inference play identically. The
+tournament runner compares policies as equals in free-for-all matches with spawn rotation. Both report
+means with 95 % confidence intervals.

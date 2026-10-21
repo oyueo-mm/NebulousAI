@@ -1,11 +1,12 @@
 {
- "createdAt": "2026-10-21T07:56:25",
- "config": "rl/configs/ppo_v3.json",
+ "createdAt": "2026-10-21T09:25:35",
+ "config": "rl/configs/ppo_v4.json",
  "episodes": 48,
  "seeds": [
   9000000,
   9000047
  ],
+ "selfplayOpponent": "ppo-v3",
  "results": {
   "forage": {
    "random": {
@@ -30,7 +31,7 @@
     "invalid_ci": 1.062,
     "death_rate": 0.0,
     "win_rate": 1.0,
-    "wallSeconds": 3.5
+    "wallSeconds": 4.0
    },
    "greedy": {
     "episodes": 48,
@@ -54,7 +55,7 @@
     "invalid_ci": 0.0,
     "death_rate": 0.0,
     "win_rate": 1.0,
-    "wallSeconds": 3.7
+    "wallSeconds": 3.9
    },
    "survival": {
     "episodes": 48,
@@ -78,7 +79,7 @@
     "invalid_ci": 0.0,
     "death_rate": 0.0,
     "win_rate": 1.0,
-    "wallSeconds": 3.1
+    "wallSeconds": 3.9
    },
    "aggressive": {
     "episodes": 48,
@@ -102,7 +103,7 @@
     "invalid_ci": 0.0,
     "death_rate": 0.0,
     "win_rate": 1.0,
-    "wallSeconds": 3.3
+    "wallSeconds": 3.6
    },
    "hybrid": {
     "episodes": 48,
@@ -126,7 +127,31 @@
     "invalid_ci": 0.0,
     "death_rate": 0.0,
     "win_rate": 1.0,
-    "wallSeconds": 3.3
+    "wallSeconds": 3.5
+   },
+   "survival (quantized)": {
+    "episodes": 48,
+    "r": 18.06,
+    "r_ci": 0.165,
+    "final_mass": 121.926,
+    "final_mass_ci": 2.01,
+    "max_mass": 122.055,
+    "max_mass_ci": 2.0,
+    "survival": 60.0,
+    "survival_ci": 0.0,
+    "kills": 0.0,
+    "kills_ci": 0.0,
+    "cells_eaten": 0.0,
+    "cells_eaten_ci": 0.0,
+    "rank": 1.0,
+    "rank_ci": 0.0,
+    "splits": 0.0,
+    "splits_ci": 0.0,
+    "invalid": 0.0,
+    "invalid_ci": 0.0,
+    "death_rate": 0.0,
+    "win_rate": 1.0,
+    "wallSeconds": 3.6
    },
    "ppo-untrained (argmax)": {
     "episodes": 48,
@@ -150,7 +175,7 @@
     "invalid_ci": 0.041,
     "death_rate": 0.0,
     "win_rate": 1.0,
-    "wallSeconds": 4.1
+    "wallSeconds": 5.2
    },
    "ppo-v1 (TS, argmax)": {
     "episodes": 48,
@@ -174,7 +199,7 @@
     "invalid_ci": 34.231,
     "death_rate": 0.0,
     "win_rate": 1.0,
-    "wallSeconds": 5.2
+    "wallSeconds": 5.7
    },
    "ppo-v2 (TS, argmax)": {
     "episodes": 48,
@@ -198,7 +223,7 @@
     "invalid_ci": 0.0,
     "death_rate": 0.0,
     "win_rate": 1.0,
-    "wallSeconds": 5.2
+    "wallSeconds": 5.7
    },
    "ppo-v3-F (TS, argmax)": {
     "episodes": 48,
@@ -222,7 +247,7 @@
     "invalid_ci": 0.0,
     "death_rate": 0.0,
     "win_rate": 1.0,
-    "wallSeconds": 5.4
+    "wallSeconds": 5.8
    },
    "ppo-v3 (TS, argmax)": {
     "episodes": 48,
@@ -246,16 +271,16 @@
     "invalid_ci": 0.0,
     "death_rate": 0.0,
     "win_rate": 1.0,
-    "wallSeconds": 5.0
+    "wallSeconds": 6.3
    },
-   "ppo-v3 (TS, sampled)": {
+   "bc-v4 (TS, argmax)": {
     "episodes": 48,
-    "r": 18.446,
-    "r_ci": 0.562,
-    "final_mass": 131.102,
-    "final_mass_ci": 6.787,
-    "max_mass": 131.104,
-    "max_mass_ci": 6.787,
+    "r": 17.879,
+    "r_ci": 0.646,
+    "final_mass": 121.61,
+    "final_mass_ci": 4.509,
+    "max_mass": 121.746,
+    "max_mass_ci": 4.51,
     "survival": 60.0,
     "survival_ci": 0.0,
     "kills": 0.0,
@@ -264,22 +289,94 @@
     "cells_eaten_ci": 0.0,
     "rank": 1.0,
     "rank_ci": 0.0,
-    "splits": 8.521,
-    "splits_ci": 0.522,
+    "splits": 0.0,
+    "splits_ci": 0.0,
     "invalid": 0.0,
     "invalid_ci": 0.0,
     "death_rate": 0.0,
     "win_rate": 1.0,
-    "wallSeconds": 4.9
+    "wallSeconds": 5.4
+   },
+   "ppo-v4-H (TS, argmax)": {
+    "episodes": 48,
+    "r": 18.567,
+    "r_ci": 0.536,
+    "final_mass": 129.857,
+    "final_mass_ci": 4.982,
+    "max_mass": 130.136,
+    "max_mass_ci": 4.866,
+    "survival": 60.0,
+    "survival_ci": 0.0,
+    "kills": 0.0,
+    "kills_ci": 0.0,
+    "cells_eaten": 0.0,
+    "cells_eaten_ci": 0.0,
+    "rank": 1.0,
+    "rank_ci": 0.0,
+    "splits": 0.0,
+    "splits_ci": 0.0,
+    "invalid": 0.0,
+    "invalid_ci": 0.0,
+    "death_rate": 0.0,
+    "win_rate": 1.0,
+    "wallSeconds": 6.2
+   },
+   "ppo-v4 (TS, argmax)": {
+    "episodes": 48,
+    "r": 18.944,
+    "r_ci": 0.195,
+    "final_mass": 133.277,
+    "final_mass_ci": 2.554,
+    "max_mass": 133.38,
+    "max_mass_ci": 2.552,
+    "survival": 60.0,
+    "survival_ci": 0.0,
+    "kills": 0.0,
+    "kills_ci": 0.0,
+    "cells_eaten": 0.0,
+    "cells_eaten_ci": 0.0,
+    "rank": 1.0,
+    "rank_ci": 0.0,
+    "splits": 0.0,
+    "splits_ci": 0.0,
+    "invalid": 0.0,
+    "invalid_ci": 0.0,
+    "death_rate": 0.0,
+    "win_rate": 1.0,
+    "wallSeconds": 5.4
+   },
+   "ppo-v4 (TS, sampled)": {
+    "episodes": 48,
+    "r": 18.921,
+    "r_ci": 0.24,
+    "final_mass": 133.437,
+    "final_mass_ci": 3.467,
+    "max_mass": 133.528,
+    "max_mass_ci": 3.463,
+    "survival": 60.0,
+    "survival_ci": 0.0,
+    "kills": 0.0,
+    "kills_ci": 0.0,
+    "cells_eaten": 0.0,
+    "cells_eaten_ci": 0.0,
+    "rank": 1.0,
+    "rank_ci": 0.0,
+    "splits": 0.958,
+    "splits_ci": 0.481,
+    "invalid": 0.0,
+    "invalid_ci": 0.0,
+    "death_rate": 0.0,
+    "win_rate": 1.0,
+    "wallSeconds": 5.7
    },
    "ppo (torch, argmax)": {
     "episodes": 48,
-    "r": 19.129,
-    "r_ci": 0.364,
-    "final_mass": 139.15,
-    "final_mass_ci": 5.194,
-    "max_mass": 139.15,
-    "max_mass_ci": 5.194,
+    "r": 18.944,
+    "r_ci": 0.195,
+    "final_mass": 133.277,
+    "final_mass_ci": 2.554,
+    "max_mass": 133.38,
+    "max_mass_ci": 2.552,
     "survival": 60.0,
     "survival_ci": 0.0,
     "kills": 0.0,
@@ -288,13 +385,13 @@
     "cells_eaten_ci": 0.0,
     "rank": 1.0,
     "rank_ci": 0.0,
-    "splits": 9.229,
-    "splits_ci": 0.438,
+    "splits": 0.0,
+    "splits_ci": 0.0,
     "invalid": 0.0,
     "invalid_ci": 0.0,
     "death_rate": 0.0,
     "win_rate": 1.0,
-    "wallSeconds": 4.4
+    "wallSeconds": 4.7
    }
   },
   "evade": {
@@ -320,7 +417,7 @@
     "invalid_ci": 2.175,
     "death_rate": 0.854,
     "win_rate": 0.0,
-    "wallSeconds": 8.9
+    "wallSeconds": 9.5
    },
    "greedy": {
     "episodes": 48,
@@ -344,7 +441,7 @@
     "invalid_ci": 0.0,
     "death_rate": 0.312,
     "win_rate": 0.0,
-    "wallSeconds": 9.2
+    "wallSeconds": 8.5
    },
    "survival": {
     "episodes": 48,
@@ -368,7 +465,7 @@
     "invalid_ci": 0.0,
     "death_rate": 0.312,
     "win_rate": 0.0,
-    "wallSeconds": 8.5
+    "wallSeconds": 9.6
    },
    "aggressive": {
     "episodes": 48,
@@ -392,7 +489,7 @@
     "invalid_ci": 0.0,
     "death_rate": 0.417,
     "win_rate": 0.0,
-    "wallSeconds": 8.6
+    "wallSeconds": 8.9
    },
    "hybrid": {
     "episodes": 48,
@@ -416,7 +513,31 @@
     "invalid_ci": 0.0,
     "death_rate": 0.25,
     "win_rate": 0.0,
-    "wallSeconds": 8.8
+    "wallSeconds": 10.7
+   },
+   "survival (quantized)": {
+    "episodes": 48,
+    "r": 9.758,
+    "r_ci": 2.185,
+    "final_mass": 96.07,
+    "final_mass_ci": 17.266,
+    "max_mass": 124.268,
+    "max_mass_ci": 10.019,
+    "survival": 78.558,
+    "survival_ci": 6.828,
+    "kills": 0.0,
+    "kills_ci": 0.0,
+    "cells_eaten": 0.0,
+    "cells_eaten_ci": 0.0,
+    "rank": 5.875,
+    "rank_ci": 0.095,
+    "splits": 1.021,
+    "splits_ci": 0.322,
+    "invalid": 0.0,
+    "invalid_ci": 0.0,
+    "death_rate": 0.208,
+    "win_rate": 0.0,
+    "wallSeconds": 9.8
    },
    "ppo-untrained (argmax)": {
     "episodes": 48,
@@ -440,7 +561,7 @@
     "invalid_ci": 12.883,
     "death_rate": 0.75,
     "win_rate": 0.0,
-    "wallSeconds": 11.3
+    "wallSeconds": 13.1
    },
    "ppo-v1 (TS, argmax)": {
     "episodes": 48,
@@ -464,7 +585,7 @@
     "invalid_ci": 21.872,
     "death_rate": 0.312,
     "win_rate": 0.0,
-    "wallSeconds": 12.6
+    "wallSeconds": 14.6
    },
    "ppo-v2 (TS, argmax)": {
     "episodes": 48,
@@ -488,7 +609,7 @@
     "invalid_ci": 0.0,
     "death_rate": 0.375,
     "win_rate": 0.0,
-    "wallSeconds": 12.8
+    "wallSeconds": 14.8
    },
    "ppo-v3-F (TS, argmax)": {
     "episodes": 48,
@@ -512,7 +633,7 @@
     "invalid_ci": 0.0,
     "death_rate": 0.479,
     "win_rate": 0.021,
-    "wallSeconds": 12.6
+    "wallSeconds": 15.0
    },
    "ppo-v3 (TS, argmax)": {
     "episodes": 48,
@@ -536,55 +657,127 @@
     "invalid_ci": 0.0,
     "death_rate": 0.208,
     "win_rate": 0.0,
-    "wallSeconds": 11.7
+    "wallSeconds": 13.9
    },
-   "ppo-v3 (TS, sampled)": {
+   "bc-v4 (TS, argmax)": {
     "episodes": 48,
-    "r": 8.456,
-    "r_ci": 3.067,
-    "final_mass": 112.329,
-    "final_mass_ci": 27.547,
-    "max_mass": 150.101,
-    "max_mass_ci": 18.36,
-    "survival": 71.904,
-    "survival_ci": 7.877,
+    "r": 7.794,
+    "r_ci": 2.382,
+    "final_mass": 74.984,
+    "final_mass_ci": 18.062,
+    "max_mass": 120.84,
+    "max_mass_ci": 7.097,
+    "survival": 76.903,
+    "survival_ci": 5.913,
     "kills": 0.0,
     "kills_ci": 0.0,
     "cells_eaten": 0.0,
     "cells_eaten_ci": 0.0,
-    "rank": 5.625,
-    "rank_ci": 0.207,
-    "splits": 13.354,
-    "splits_ci": 2.1,
+    "rank": 5.938,
+    "rank_ci": 0.091,
+    "splits": 1.25,
+    "splits_ci": 0.328,
     "invalid": 0.0,
     "invalid_ci": 0.0,
     "death_rate": 0.375,
     "win_rate": 0.0,
-    "wallSeconds": 12.0
+    "wallSeconds": 13.0
    },
-   "ppo (torch, argmax)": {
+   "ppo-v4-H (TS, argmax)": {
     "episodes": 48,
-    "r": 13.388,
-    "r_ci": 2.564,
-    "final_mass": 160.857,
-    "final_mass_ci": 26.049,
-    "max_mass": 179.778,
-    "max_mass_ci": 17.372,
-    "survival": 80.012,
-    "survival_ci": 6.069,
+    "r": 8.891,
+    "r_ci": 2.919,
+    "final_mass": 102.887,
+    "final_mass_ci": 22.519,
+    "max_mass": 137.125,
+    "max_mass_ci": 12.265,
+    "survival": 73.015,
+    "survival_ci": 7.516,
     "kills": 0.0,
     "kills_ci": 0.0,
     "cells_eaten": 0.0,
     "cells_eaten_ci": 0.0,
-    "rank": 5.188,
-    "rank_ci": 0.328,
-    "splits": 16.083,
-    "splits_ci": 1.903,
+    "rank": 5.792,
+    "rank_ci": 0.116,
+    "splits": 3.583,
+    "splits_ci": 0.783,
     "invalid": 0.0,
     "invalid_ci": 0.0,
-    "death_rate": 0.208,
+    "death_rate": 0.333,
     "win_rate": 0.0,
-    "wallSeconds": 9.2
+    "wallSeconds": 12.8
+   },
+   "ppo-v4 (TS, argmax)": {
+    "episodes": 48,
+    "r": 13.193,
+    "r_ci": 2.201,
+    "final_mass": 134.619,
+    "final_mass_ci": 19.785,
+    "max_mass": 159.087,
+    "max_mass_ci": 9.158,
+    "survival": 82.783,
+    "survival_ci": 4.922,
+    "kills": 0.0,
+    "kills_ci": 0.0,
+    "cells_eaten": 0.0,
+    "cells_eaten_ci": 0.0,
+    "rank": 5.729,
+    "rank_ci": 0.152,
+    "splits": 4.479,
+    "splits_ci": 0.765,
+    "invalid": 0.0,
+    "invalid_ci": 0.0,
+    "death_rate": 0.167,
+    "win_rate": 0.0,
+    "wallSeconds": 12.9
+   },
+   "ppo-v4 (TS, sampled)": {
+    "episodes": 48,
+    "r": 8.498,
+    "r_ci": 3.097,
+    "final_mass": 104.979,
+    "final_mass_ci": 26.66,
+    "max_mass": 144.892,
+    "max_mass_ci": 16.638,
+    "survival": 69.738,
+    "survival_ci": 8.26,
+    "kills": 0.0,
+    "kills_ci": 0.0,
+    "cells_eaten": 0.0,
+    "cells_eaten_ci": 0.0,
+    "rank": 5.688,
+    "rank_ci": 0.203,
+    "splits": 6.229,
+    "splits_ci": 1.176,
+    "invalid": 0.0,
+    "invalid_ci": 0.0,
+    "death_rate": 0.396,
+    "win_rate": 0.0,
+    "wallSeconds": 12.5
+   },
+   "ppo (torch, argmax)": {
+    "episodes": 48,
+    "r": 13.193,
+    "r_ci": 2.201,
+    "final_mass": 134.619,
+    "final_mass_ci": 19.785,
+    "max_mass": 159.087,
+    "max_mass_ci": 9.158,
+    "survival": 82.783,
+    "survival_ci": 4.922,
+    "kills": 0.0,
+    "kills_ci": 0.0,
+    "cells_eaten": 0.0,
+    "cells_eaten_ci": 0.0,
+    "rank": 5.729,
+    "rank_ci": 0.152,
+    "splits": 4.479,
+    "splits_ci": 0.765,
+    "invalid": 0.0,
+    "invalid_ci": 0.0,
+    "death_rate": 0.167,
+    "win_rate": 0.0,
+    "wallSeconds": 13.9
    }
   },
   "hunt": {
@@ -610,7 +803,7 @@
     "invalid_ci": 1.656,
     "death_rate": 0.771,
     "win_rate": 0.0,
-    "wallSeconds": 10.5
+    "wallSeconds": 10.9
    },
    "greedy": {
     "episodes": 48,
@@ -634,7 +827,7 @@
     "invalid_ci": 0.0,
     "death_rate": 0.062,
     "win_rate": 0.458,
-    "wallSeconds": 11.0
+    "wallSeconds": 10.0
    },
    "survival": {
     "episodes": 48,
@@ -658,7 +851,7 @@
     "invalid_ci": 0.0,
     "death_rate": 0.021,
     "win_rate": 0.229,
-    "wallSeconds": 11.5
+    "wallSeconds": 9.0
    },
    "aggressive": {
     "episodes": 48,
@@ -682,7 +875,7 @@
     "invalid_ci": 0.0,
     "death_rate": 0.104,
     "win_rate": 0.229,
-    "wallSeconds": 11.3
+    "wallSeconds": 8.3
    },
    "hybrid": {
     "episodes": 48,
@@ -706,7 +899,31 @@
     "invalid_ci": 0.0,
     "death_rate": 0.042,
     "win_rate": 0.25,
-    "wallSeconds": 11.8
+    "wallSeconds": 8.5
+   },
+   "survival (quantized)": {
+    "episodes": 48,
+    "r": 8.478,
+    "r_ci": 0.654,
+    "final_mass": 230.325,
+    "final_mass_ci": 9.033,
+    "max_mass": 230.801,
+    "max_mass_ci": 9.02,
+    "survival": 90.0,
+    "survival_ci": 0.0,
+    "kills": 0.375,
+    "kills_ci": 0.19,
+    "cells_eaten": 0.417,
+    "cells_eaten_ci": 0.225,
+    "rank": 2.375,
+    "rank_ci": 0.295,
+    "splits": 0.0,
+    "splits_ci": 0.0,
+    "invalid": 0.0,
+    "invalid_ci": 0.0,
+    "death_rate": 0.0,
+    "win_rate": 0.188,
+    "wallSeconds": 8.5
    },
    "ppo-untrained (argmax)": {
     "episodes": 48,
@@ -730,7 +947,7 @@
     "invalid_ci": 32.002,
     "death_rate": 0.625,
     "win_rate": 0.0,
-    "wallSeconds": 13.3
+    "wallSeconds": 9.3
    },
    "ppo-v1 (TS, argmax)": {
     "episodes": 48,
@@ -754,7 +971,7 @@
     "invalid_ci": 17.521,
     "death_rate": 0.25,
     "win_rate": 0.188,
-    "wallSeconds": 14.2
+    "wallSeconds": 10.2
    },
    "ppo-v2 (TS, argmax)": {
     "episodes": 48,
@@ -778,7 +995,7 @@
     "invalid_ci": 0.0,
     "death_rate": 0.25,
     "win_rate": 0.188,
-    "wallSeconds": 14.8
+    "wallSeconds": 10.4
    },
    "ppo-v3-F (TS, argmax)": {
     "episodes": 48,
@@ -802,7 +1019,7 @@
     "invalid_ci": 0.0,
     "death_rate": 0.188,
     "win_rate": 0.271,
-    "wallSeconds": 15.2
+    "wallSeconds": 10.3
    },
    "ppo-v3 (TS, argmax)": {
     "episodes": 48,
@@ -826,55 +1043,127 @@
     "invalid_ci": 0.0,
     "death_rate": 0.188,
     "win_rate": 0.25,
-    "wallSeconds": 14.6
+    "wallSeconds": 10.3
    },
-   "ppo-v3 (TS, sampled)": {
+   "bc-v4 (TS, argmax)": {
     "episodes": 48,
-    "r": 2.766,
-    "r_ci": 3.125,
-    "final_mass": 206.682,
-    "final_mass_ci": 34.22,
-    "max_mass": 254.227,
-    "max_mass_ci": 17.531,
-    "survival": 81.253,
-    "survival_ci": 6.108,
-    "kills": 0.042,
-    "kills_ci": 0.057,
-    "cells_eaten": 0.167,
-    "cells_eaten_ci": 0.147,
-    "rank": 3.75,
-    "rank_ci": 0.927,
-    "splits": 26.958,
-    "splits_ci": 2.57,
+    "r": 8.643,
+    "r_ci": 2.033,
+    "final_mass": 249.939,
+    "final_mass_ci": 29.888,
+    "max_mass": 269.439,
+    "max_mass_ci": 23.886,
+    "survival": 88.692,
+    "survival_ci": 2.082,
+    "kills": 1.188,
+    "kills_ci": 0.259,
+    "cells_eaten": 1.458,
+    "cells_eaten_ci": 0.297,
+    "rank": 2.5,
+    "rank_ci": 0.56,
+    "splits": 2.104,
+    "splits_ci": 0.493,
     "invalid": 0.0,
     "invalid_ci": 0.0,
-    "death_rate": 0.188,
-    "win_rate": 0.25,
-    "wallSeconds": 14.7
+    "death_rate": 0.042,
+    "win_rate": 0.375,
+    "wallSeconds": 10.3
+   },
+   "ppo-v4-H (TS, argmax)": {
+    "episodes": 48,
+    "r": 9.055,
+    "r_ci": 1.542,
+    "final_mass": 268.282,
+    "final_mass_ci": 27.527,
+    "max_mass": 276.482,
+    "max_mass_ci": 24.236,
+    "survival": 89.394,
+    "survival_ci": 1.187,
+    "kills": 0.292,
+    "kills_ci": 0.154,
+    "cells_eaten": 0.354,
+    "cells_eaten_ci": 0.16,
+    "rank": 2.188,
+    "rank_ci": 0.431,
+    "splits": 1.5,
+    "splits_ci": 0.642,
+    "invalid": 0.0,
+    "invalid_ci": 0.0,
+    "death_rate": 0.021,
+    "win_rate": 0.333,
+    "wallSeconds": 10.3
+   },
+   "ppo-v4 (TS, argmax)": {
+    "episodes": 48,
+    "r": 9.498,
+    "r_ci": 1.383,
+    "final_mass": 274.625,
+    "final_mass_ci": 24.498,
+    "max_mass": 278.133,
+    "max_mass_ci": 22.29,
+    "survival": 89.258,
+    "survival_ci": 1.454,
+    "kills": 0.312,
+    "kills_ci": 0.167,
+    "cells_eaten": 0.375,
+    "cells_eaten_ci": 0.199,
+    "rank": 2.062,
+    "rank_ci": 0.418,
+    "splits": 0.729,
+    "splits_ci": 0.39,
+    "invalid": 0.0,
+    "invalid_ci": 0.0,
+    "death_rate": 0.021,
+    "win_rate": 0.417,
+    "wallSeconds": 10.4
+   },
+   "ppo-v4 (TS, sampled)": {
+    "episodes": 48,
+    "r": 8.758,
+    "r_ci": 1.125,
+    "final_mass": 253.381,
+    "final_mass_ci": 20.387,
+    "max_mass": 256.104,
+    "max_mass_ci": 18.394,
+    "survival": 88.855,
+    "survival_ci": 2.244,
+    "kills": 0.229,
+    "kills_ci": 0.12,
+    "cells_eaten": 0.271,
+    "cells_eaten_ci": 0.14,
+    "rank": 2.188,
+    "rank_ci": 0.407,
+    "splits": 2.188,
+    "splits_ci": 0.855,
+    "invalid": 0.0,
+    "invalid_ci": 0.0,
+    "death_rate": 0.021,
+    "win_rate": 0.292,
+    "wallSeconds": 10.5
    },
    "ppo (torch, argmax)": {
     "episodes": 48,
-    "r": 2.71,
-    "r_ci": 3.121,
-    "final_mass": 204.847,
-    "final_mass_ci": 33.291,
-    "max_mass": 255.344,
-    "max_mass_ci": 15.492,
-    "survival": 84.65,
-    "survival_ci": 3.788,
-    "kills": 0.042,
-    "kills_ci": 0.057,
-    "cells_eaten": 0.104,
-    "cells_eaten_ci": 0.105,
-    "rank": 3.812,
-    "rank_ci": 0.928,
-    "splits": 27.396,
-    "splits_ci": 2.187,
+    "r": 9.498,
+    "r_ci": 1.383,
+    "final_mass": 274.625,
+    "final_mass_ci": 24.498,
+    "max_mass": 278.133,
+    "max_mass_ci": 22.29,
+    "survival": 89.258,
+    "survival_ci": 1.454,
+    "kills": 0.312,
+    "kills_ci": 0.167,
+    "cells_eaten": 0.375,
+    "cells_eaten_ci": 0.199,
+    "rank": 2.062,
+    "rank_ci": 0.418,
+    "splits": 0.729,
+    "splits_ci": 0.39,
     "invalid": 0.0,
     "invalid_ci": 0.0,
-    "death_rate": 0.188,
-    "win_rate": 0.25,
-    "wallSeconds": 11.4
+    "death_rate": 0.021,
+    "win_rate": 0.417,
+    "wallSeconds": 10.8
    }
   },
   "mixed": {
@@ -900,7 +1189,7 @@
     "invalid_ci": 2.116,
     "death_rate": 0.979,
     "win_rate": 0.0,
-    "wallSeconds": 18.3
+    "wallSeconds": 14.2
    },
    "greedy": {
     "episodes": 48,
@@ -924,7 +1213,7 @@
     "invalid_ci": 0.0,
     "death_rate": 0.146,
     "win_rate": 0.104,
-    "wallSeconds": 19.9
+    "wallSeconds": 14.7
    },
    "survival": {
     "episodes": 48,
@@ -948,7 +1237,7 @@
     "invalid_ci": 0.0,
     "death_rate": 0.042,
     "win_rate": 0.083,
-    "wallSeconds": 19.9
+    "wallSeconds": 16.8
    },
    "aggressive": {
     "episodes": 48,
@@ -972,7 +1261,7 @@
     "invalid_ci": 0.0,
     "death_rate": 0.146,
     "win_rate": 0.125,
-    "wallSeconds": 20.5
+    "wallSeconds": 14.5
    },
    "hybrid": {
     "episodes": 48,
@@ -996,7 +1285,31 @@
     "invalid_ci": 0.0,
     "death_rate": 0.125,
     "win_rate": 0.021,
-    "wallSeconds": 21.4
+    "wallSeconds": 14.6
+   },
+   "survival (quantized)": {
+    "episodes": 48,
+    "r": 21.79,
+    "r_ci": 1.773,
+    "final_mass": 186.493,
+    "final_mass_ci": 24.648,
+    "max_mass": 202.759,
+    "max_mass_ci": 17.692,
+    "survival": 139.606,
+    "survival_ci": 9.443,
+    "kills": 0.312,
+    "kills_ci": 0.145,
+    "cells_eaten": 0.354,
+    "cells_eaten_ci": 0.18,
+    "rank": 5.958,
+    "rank_ci": 0.747,
+    "splits": 0.479,
+    "splits_ci": 0.32,
+    "invalid": 0.0,
+    "invalid_ci": 0.0,
+    "death_rate": 0.125,
+    "win_rate": 0.0,
+    "wallSeconds": 14.5
    },
    "ppo-untrained (argmax)": {
     "episodes": 48,
@@ -1020,7 +1333,7 @@
     "invalid_ci": 5.769,
     "death_rate": 0.938,
     "win_rate": 0.0,
-    "wallSeconds": 24.0
+    "wallSeconds": 15.7
    },
    "ppo-v1 (TS, argmax)": {
     "episodes": 48,
@@ -1044,7 +1357,7 @@
     "invalid_ci": 46.753,
     "death_rate": 0.667,
     "win_rate": 0.0,
-    "wallSeconds": 23.9
+    "wallSeconds": 17.3
    },
    "ppo-v2 (TS, argmax)": {
     "episodes": 48,
@@ -1068,7 +1381,7 @@
     "invalid_ci": 0.0,
     "death_rate": 0.708,
     "win_rate": 0.042,
-    "wallSeconds": 25.0
+    "wallSeconds": 18.0
    },
    "ppo-v3-F (TS, argmax)": {
     "episodes": 48,
@@ -1092,7 +1405,7 @@
     "invalid_ci": 0.0,
     "death_rate": 0.5,
     "win_rate": 0.042,
-    "wallSeconds": 24.9
+    "wallSeconds": 17.9
    },
    "ppo-v3 (TS, argmax)": {
     "episodes": 48,
@@ -1116,55 +1429,127 @@
     "invalid_ci": 0.0,
     "death_rate": 0.688,
     "win_rate": 0.0,
-    "wallSeconds": 24.4
+    "wallSeconds": 17.3
    },
-   "ppo-v3 (TS, sampled)": {
+   "bc-v4 (TS, argmax)": {
     "episodes": 48,
-    "r": 7.013,
-    "r_ci": 3.172,
-    "final_mass": 70.868,
-    "final_mass_ci": 30.395,
-    "max_mass": 146.486,
-    "max_mass_ci": 23.844,
-    "survival": 97.794,
-    "survival_ci": 14.116,
-    "kills": 0.0,
-    "kills_ci": 0.0,
-    "cells_eaten": 0.021,
-    "cells_eaten_ci": 0.041,
-    "rank": 8.979,
-    "rank_ci": 0.843,
-    "splits": 16.438,
-    "splits_ci": 3.683,
+    "r": 23.314,
+    "r_ci": 2.402,
+    "final_mass": 234.415,
+    "final_mass_ci": 35.992,
+    "max_mass": 268.299,
+    "max_mass_ci": 29.363,
+    "survival": 138.756,
+    "survival_ci": 8.703,
+    "kills": 0.646,
+    "kills_ci": 0.251,
+    "cells_eaten": 0.792,
+    "cells_eaten_ci": 0.273,
+    "rank": 4.792,
+    "rank_ci": 0.95,
+    "splits": 1.333,
+    "splits_ci": 0.5,
     "invalid": 0.0,
     "invalid_ci": 0.0,
-    "death_rate": 0.667,
-    "win_rate": 0.021,
-    "wallSeconds": 24.1
+    "death_rate": 0.146,
+    "win_rate": 0.208,
+    "wallSeconds": 18.3
+   },
+   "ppo-v4-H (TS, argmax)": {
+    "episodes": 48,
+    "r": 26.284,
+    "r_ci": 0.873,
+    "final_mass": 283.83,
+    "final_mass_ci": 23.675,
+    "max_mass": 287.099,
+    "max_mass_ci": 22.65,
+    "survival": 150.0,
+    "survival_ci": 0.0,
+    "kills": 0.25,
+    "kills_ci": 0.16,
+    "cells_eaten": 0.292,
+    "cells_eaten_ci": 0.184,
+    "rank": 3.583,
+    "rank_ci": 0.612,
+    "splits": 2.271,
+    "splits_ci": 0.791,
+    "invalid": 0.0,
+    "invalid_ci": 0.0,
+    "death_rate": 0.0,
+    "win_rate": 0.188,
+    "wallSeconds": 18.2
+   },
+   "ppo-v4 (TS, argmax)": {
+    "episodes": 48,
+    "r": 26.616,
+    "r_ci": 1.312,
+    "final_mass": 308.301,
+    "final_mass_ci": 35.884,
+    "max_mass": 321.56,
+    "max_mass_ci": 31.577,
+    "survival": 148.865,
+    "survival_ci": 2.225,
+    "kills": 0.167,
+    "kills_ci": 0.107,
+    "cells_eaten": 0.354,
+    "cells_eaten_ci": 0.277,
+    "rank": 3.25,
+    "rank_ci": 0.689,
+    "splits": 3.042,
+    "splits_ci": 1.241,
+    "invalid": 0.0,
+    "invalid_ci": 0.0,
+    "death_rate": 0.021,
+    "win_rate": 0.25,
+    "wallSeconds": 25.0
+   },
+   "ppo-v4 (TS, sampled)": {
+    "episodes": 48,
+    "r": 22.968,
+    "r_ci": 2.45,
+    "final_mass": 245.101,
+    "final_mass_ci": 31.766,
+    "max_mass": 273.102,
+    "max_mass_ci": 22.482,
+    "survival": 143.572,
+    "survival_ci": 6.61,
+    "kills": 0.167,
+    "kills_ci": 0.121,
+    "cells_eaten": 0.271,
+    "cells_eaten_ci": 0.173,
+    "rank": 4.792,
+    "rank_ci": 0.817,
+    "splits": 5.958,
+    "splits_ci": 1.381,
+    "invalid": 0.0,
+    "invalid_ci": 0.0,
+    "death_rate": 0.104,
+    "win_rate": 0.062,
+    "wallSeconds": 26.9
    },
    "ppo (torch, argmax)": {
     "episodes": 48,
-    "r": 6.04,
-    "r_ci": 3.053,
-    "final_mass": 62.199,
-    "final_mass_ci": 28.178,
-    "max_mass": 142.536,
-    "max_mass_ci": 24.277,
-    "survival": 94.325,
-    "survival_ci": 14.646,
-    "kills": 0.0,
-    "kills_ci": 0.0,
-    "cells_eaten": 0.083,
-    "cells_eaten_ci": 0.098,
-    "rank": 9.167,
-    "rank_ci": 0.768,
-    "splits": 15.312,
-    "splits_ci": 3.654,
+    "r": 26.616,
+    "r_ci": 1.312,
+    "final_mass": 308.301,
+    "final_mass_ci": 35.884,
+    "max_mass": 321.56,
+    "max_mass_ci": 31.577,
+    "survival": 148.865,
+    "survival_ci": 2.225,
+    "kills": 0.167,
+    "kills_ci": 0.107,
+    "cells_eaten": 0.354,
+    "cells_eaten_ci": 0.277,
+    "rank": 3.25,
+    "rank_ci": 0.689,
+    "splits": 3.042,
+    "splits_ci": 1.241,
     "invalid": 0.0,
     "invalid_ci": 0.0,
-    "death_rate": 0.688,
-    "win_rate": 0.0,
-    "wallSeconds": 19.4
+    "death_rate": 0.021,
+    "win_rate": 0.25,
+    "wallSeconds": 20.1
    }
   },
   "selfplay": {
@@ -1190,7 +1575,7 @@
     "invalid_ci": 1.323,
     "death_rate": 1.0,
     "win_rate": 0.0,
-    "wallSeconds": 18.8
+    "wallSeconds": 18.7
    },
    "greedy": {
     "episodes": 48,
@@ -1214,7 +1599,7 @@
     "invalid_ci": 0.0,
     "death_rate": 0.25,
     "win_rate": 0.208,
-    "wallSeconds": 32.0
+    "wallSeconds": 32.7
    },
    "survival": {
     "episodes": 48,
@@ -1238,7 +1623,7 @@
     "invalid_ci": 0.0,
     "death_rate": 0.021,
     "win_rate": 0.062,
-    "wallSeconds": 32.0
+    "wallSeconds": 34.0
    },
    "aggressive": {
     "episodes": 48,
@@ -1262,7 +1647,7 @@
     "invalid_ci": 0.0,
     "death_rate": 0.25,
     "win_rate": 0.083,
-    "wallSeconds": 31.7
+    "wallSeconds": 34.5
    },
    "hybrid": {
     "episodes": 48,
@@ -1286,7 +1671,31 @@
     "invalid_ci": 0.0,
     "death_rate": 0.104,
     "win_rate": 0.062,
-    "wallSeconds": 32.8
+    "wallSeconds": 33.7
+   },
+   "survival (quantized)": {
+    "episodes": 48,
+    "r": 22.312,
+    "r_ci": 1.93,
+    "final_mass": 207.96,
+    "final_mass_ci": 26.858,
+    "max_mass": 223.348,
+    "max_mass_ci": 19.968,
+    "survival": 138.722,
+    "survival_ci": 9.741,
+    "kills": 0.083,
+    "kills_ci": 0.098,
+    "cells_eaten": 0.583,
+    "cells_eaten_ci": 0.368,
+    "rank": 4.771,
+    "rank_ci": 0.792,
+    "splits": 0.229,
+    "splits_ci": 0.177,
+    "invalid": 0.0,
+    "invalid_ci": 0.0,
+    "death_rate": 0.125,
+    "win_rate": 0.042,
+    "wallSeconds": 32.0
    },
    "ppo-untrained (argmax)": {
     "episodes": 48,
@@ -1310,7 +1719,7 @@
     "invalid_ci": 9.361,
     "death_rate": 0.896,
     "win_rate": 0.0,
-    "wallSeconds": 35.2
+    "wallSeconds": 34.3
    },
    "ppo-v1 (TS, argmax)": {
     "episodes": 48,
@@ -1334,7 +1743,7 @@
     "invalid_ci": 38.309,
     "death_rate": 0.729,
     "win_rate": 0.0,
-    "wallSeconds": 37.0
+    "wallSeconds": 36.2
    },
    "ppo-v2 (TS, argmax)": {
     "episodes": 48,
@@ -1358,7 +1767,7 @@
     "invalid_ci": 0.0,
     "death_rate": 0.75,
     "win_rate": 0.021,
-    "wallSeconds": 36.6
+    "wallSeconds": 31.1
    },
    "ppo-v3-F (TS, argmax)": {
     "episodes": 48,
@@ -1382,7 +1791,7 @@
     "invalid_ci": 0.0,
     "death_rate": 0.583,
     "win_rate": 0.021,
-    "wallSeconds": 38.2
+    "wallSeconds": 35.8
    },
    "ppo-v3 (TS, argmax)": {
     "episodes": 48,
@@ -1406,55 +1815,127 @@
     "invalid_ci": 0.0,
     "death_rate": 0.542,
     "win_rate": 0.021,
-    "wallSeconds": 37.4
+    "wallSeconds": 41.4
    },
-   "ppo-v3 (TS, sampled)": {
+   "bc-v4 (TS, argmax)": {
     "episodes": 48,
-    "r": 9.393,
-    "r_ci": 3.362,
-    "final_mass": 93.904,
-    "final_mass_ci": 32.065,
-    "max_mass": 160.741,
-    "max_mass_ci": 22.143,
-    "survival": 114.081,
-    "survival_ci": 12.544,
-    "kills": 0.0,
-    "kills_ci": 0.0,
-    "cells_eaten": 0.042,
-    "cells_eaten_ci": 0.057,
-    "rank": 8.458,
-    "rank_ci": 0.976,
-    "splits": 18.562,
-    "splits_ci": 3.316,
+    "r": 23.787,
+    "r_ci": 1.758,
+    "final_mass": 244.912,
+    "final_mass_ci": 31.034,
+    "max_mass": 269.599,
+    "max_mass_ci": 26.557,
+    "survival": 147.868,
+    "survival_ci": 3.624,
+    "kills": 0.104,
+    "kills_ci": 0.105,
+    "cells_eaten": 0.542,
+    "cells_eaten_ci": 0.378,
+    "rank": 4.688,
+    "rank_ci": 0.874,
+    "splits": 1.021,
+    "splits_ci": 0.357,
     "invalid": 0.0,
     "invalid_ci": 0.0,
-    "death_rate": 0.521,
-    "win_rate": 0.042,
-    "wallSeconds": 36.6
+    "death_rate": 0.042,
+    "win_rate": 0.146,
+    "wallSeconds": 40.3
+   },
+   "ppo-v4-H (TS, argmax)": {
+    "episodes": 48,
+    "r": 24.936,
+    "r_ci": 1.791,
+    "final_mass": 269.444,
+    "final_mass_ci": 29.468,
+    "max_mass": 283.638,
+    "max_mass_ci": 22.624,
+    "survival": 147.376,
+    "survival_ci": 2.95,
+    "kills": 0.042,
+    "kills_ci": 0.057,
+    "cells_eaten": 0.208,
+    "cells_eaten_ci": 0.218,
+    "rank": 4.062,
+    "rank_ci": 0.701,
+    "splits": 1.771,
+    "splits_ci": 0.887,
+    "invalid": 0.0,
+    "invalid_ci": 0.0,
+    "death_rate": 0.062,
+    "win_rate": 0.167,
+    "wallSeconds": 39.6
+   },
+   "ppo-v4 (TS, argmax)": {
+    "episodes": 48,
+    "r": 24.401,
+    "r_ci": 1.913,
+    "final_mass": 263.116,
+    "final_mass_ci": 31.83,
+    "max_mass": 284.243,
+    "max_mass_ci": 24.819,
+    "survival": 146.458,
+    "survival_ci": 4.739,
+    "kills": 0.021,
+    "kills_ci": 0.041,
+    "cells_eaten": 0.208,
+    "cells_eaten_ci": 0.202,
+    "rank": 4.021,
+    "rank_ci": 0.81,
+    "splits": 1.479,
+    "splits_ci": 0.645,
+    "invalid": 0.0,
+    "invalid_ci": 0.0,
+    "death_rate": 0.062,
+    "win_rate": 0.208,
+    "wallSeconds": 40.3
+   },
+   "ppo-v4 (TS, sampled)": {
+    "episodes": 48,
+    "r": 21.627,
+    "r_ci": 2.985,
+    "final_mass": 237.846,
+    "final_mass_ci": 34.811,
+    "max_mass": 265.254,
+    "max_mass_ci": 24.914,
+    "survival": 139.892,
+    "survival_ci": 8.118,
+    "kills": 0.0,
+    "kills_ci": 0.0,
+    "cells_eaten": 0.229,
+    "cells_eaten_ci": 0.281,
+    "rank": 4.812,
+    "rank_ci": 0.915,
+    "splits": 4.854,
+    "splits_ci": 1.637,
+    "invalid": 0.0,
+    "invalid_ci": 0.0,
+    "death_rate": 0.146,
+    "win_rate": 0.125,
+    "wallSeconds": 37.3
    },
    "ppo (torch, argmax)": {
     "episodes": 48,
-    "r": 9.536,
-    "r_ci": 3.321,
-    "final_mass": 92.872,
-    "final_mass_ci": 31.257,
-    "max_mass": 138.434,
-    "max_mass_ci": 24.491,
-    "survival": 97.36,
-    "survival_ci": 16.356,
-    "kills": 0.0,
-    "kills_ci": 0.0,
-    "cells_eaten": 0.0,
-    "cells_eaten_ci": 0.0,
-    "rank": 8.417,
-    "rank_ci": 0.887,
-    "splits": 15.562,
-    "splits_ci": 3.644,
+    "r": 24.401,
+    "r_ci": 1.913,
+    "final_mass": 263.116,
+    "final_mass_ci": 31.83,
+    "max_mass": 284.243,
+    "max_mass_ci": 24.819,
+    "survival": 146.458,
+    "survival_ci": 4.739,
+    "kills": 0.021,
+    "kills_ci": 0.041,
+    "cells_eaten": 0.208,
+    "cells_eaten_ci": 0.202,
+    "rank": 4.021,
+    "rank_ci": 0.81,
+    "splits": 1.479,
+    "splits_ci": 0.645,
     "invalid": 0.0,
     "invalid_ci": 0.0,
-    "death_rate": 0.542,
-    "win_rate": 0.021,
-    "wallSeconds": 30.9
+    "death_rate": 0.062,
+    "win_rate": 0.208,
+    "wallSeconds": 31.1
    }
   }
  },

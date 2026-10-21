@@ -25,7 +25,10 @@ let lastLoop = 0;
 let timer: ReturnType<typeof setTimeout> | null = null;
 let historySent = 0;
 let log: string[] = [];
-const meter = { ticks: 0, since: 0, ups: 0, speedActual: 0, worldMs: 0, policyMs: 0, frameMs: 0 };
+// Per-tick costs are averaged over ~500 ms windows: browsers coarsen performance.now(), so a
+// single frame's one or two ticks would read as 0 or 0.1 ms.
+const meter = { ticks: 0, since: 0, ups: 0, speedActual: 0, worldMs: 0, policyMs: 0, frames: 0,
+  sumWorld: 0, sumPolicy: 0, sumWork: 0, frameMs: 0 };
 
 function post(msg: FromWorker, transfer: Transferable[] = []): void {
   self.postMessage(msg, transfer);
@@ -52,7 +55,8 @@ function collectLog(m: Match): void {
 function sendFrame(workMs: number): void {
   if (!match) return;
   const stats: FrameStats = {
-    ups: meter.ups, speedActual: meter.speedActual, worldMsPerTick: meter.worldMs, policyMsPerTick: meter.policyMs, workerMsPerFrame: workMs,
+    ups: meter.ups, speedActual: meter.speedActual, worldMsPerTick: meter.worldMs, policyMsPerTick: meter.policyMs,
+    workerMsPerFrame: running ? meter.frameMs : workMs,
   };
   const frame = buildFrame(match, { inspectId, heatmap, stats, running, historyFrom: historySent, log });
   historySent = match.history.length;
@@ -72,10 +76,8 @@ function runTicks(maxTicks: number, deadline: number): number {
     n++;
     if (performance.now() > deadline) break;
   }
-  if (n > 0) {
-    meter.worldMs = (match.timing.worldMs - t0w) / n;
-    meter.policyMs = (match.timing.policyMs - t0p) / n;
-  }
+  meter.sumWorld += match.timing.worldMs - t0w;
+  meter.sumPolicy += match.timing.policyMs - t0p;
   return n;
 }
 
@@ -99,11 +101,16 @@ function loop(): void {
     if (accumulator > 4 * tick) accumulator = 0;
   }
   meter.ticks += ticks;
+  meter.frames++;
+  meter.sumWork += performance.now() - now;
   if (now - meter.since >= 500) {
     const secs = (now - meter.since) / 1000;
     meter.ups = meter.ticks / secs;
     meter.speedActual = (meter.ticks * tick) / secs;
-    meter.ticks = 0;
+    meter.worldMs = meter.ticks ? meter.sumWorld / meter.ticks : 0;
+    meter.policyMs = meter.ticks ? meter.sumPolicy / meter.ticks : 0;
+    meter.frameMs = meter.frames ? meter.sumWork / meter.frames : 0;
+    meter.ticks = 0; meter.frames = 0; meter.sumWorld = 0; meter.sumPolicy = 0; meter.sumWork = 0;
     meter.since = now;
   }
   sendFrame(performance.now() - now);
@@ -115,7 +122,7 @@ function start(): void {
   if (timer !== null || !running) return;
   lastLoop = performance.now();
   meter.since = lastLoop;
-  meter.ticks = 0;
+  meter.ticks = 0; meter.frames = 0; meter.sumWorld = 0; meter.sumPolicy = 0; meter.sumWork = 0;
   timer = setTimeout(loop, 0);
 }
 

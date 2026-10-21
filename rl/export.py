@@ -143,7 +143,7 @@ def evaluation_rows(report: dict[str, Any], model_id: str) -> list[dict[str, Any
     rows = []
     for scenario, entries in report["results"].items():
         for name, s in entries.items():
-            if name.startswith(model_id) or "(" not in name:
+            if name.startswith(f"{model_id} (") or "(" not in name:
                 rows.append({"scenario": scenario, "policy": name, "return": s["r"], "final mass": s["final_mass"],
                              "survival s": s["survival"], "death": s["death_rate"], "win": s["win_rate"], "n": s["episodes"]})
     return rows

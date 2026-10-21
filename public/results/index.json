@@ -1,1 +1,1 @@
-["heuristics.json", "greedy-vs-random.json", "greedy-vs-survival.json", "survival-vs-aggressive.json"]
+["ppo-mixed.ppo-v4.json", "hybrid-vs-ppo.ppo-v4.json", "ppo-vs-ppo.ppo-v4.json", "ppo-generations.json", "heuristics.json", "greedy-vs-random.json", "greedy-vs-survival.json", "survival-vs-aggressive.json"]

@@ -278,13 +278,30 @@ export interface PolicyOutput {
   mask: boolean[] | null;
 }
 
+/** A dense layer flattened to typed arrays for fast inference (row-major [out][in]). */
+interface PackedLayer {
+  w: Float64Array;
+  b: Float64Array;
+  inputs: number;
+}
+
+function pack(l: DenseLayer): PackedLayer {
+  const inputs = l.weight[0]?.length ?? 0;
+  const w = new Float64Array(l.bias.length * inputs);
+  l.weight.forEach((row, o) => w.set(row, o * inputs));
+  return { w, b: Float64Array.from(l.bias), inputs };
+}
+
 export class MlpPolicyModel {
   readonly file: MlpModelFile;
   private readonly act: (v: number) => number;
+  private readonly packed: { pi: PackedLayer[]; action: PackedLayer; vf: PackedLayer[]; value: PackedLayer };
 
   constructor(file: MlpModelFile) {
     validateModel(file);
     this.file = file.weightPrecision === 'float32' ? roundWeights(file) : file;
+    const f = this.file;
+    this.packed = { pi: f.policyNet.map(pack), action: pack(f.actionNet), vf: f.valueNet.map(pack), value: pack(f.valueHead) };
     this.act = file.activation === 'relu' ? (v) => (v > 0 ? v : 0) : Math.tanh;
   }
 
@@ -305,17 +322,17 @@ export class MlpPolicyModel {
 
   forward(obs: ArrayLike<number>): PolicyOutput {
     const x = this.normalize(obs);
-    const latentPi = this.trunk(x, this.file.policyNet);
-    const logits = dense(this.file.actionNet, latentPi, (v) => v);
-    const latentVf = this.trunk(x, this.file.valueNet);
-    const value = dense(this.file.valueHead, latentVf, (v) => v)[0];
+    const p = this.packed;
+    const identity = (v: number) => v;
+    const logits = dense(p.action, this.trunk(x, p.pi), identity);
+    const value = dense(p.value, this.trunk(x, p.vf), identity)[0];
     if (!this.file.actionMasking) return { logits, probs: softmax(logits), value, mask: null };
     const mask = actionMask(obs);
     const masked = logits.map((l, i) => (mask[i] ? l : MASKED_LOGIT));
     return { logits, probs: softmax(masked), value, mask };
   }
 
-  private trunk(x: Float64Array, layers: DenseLayer[]): Float64Array {
+  private trunk(x: Float64Array, layers: PackedLayer[]): Float64Array {
     let h = x;
     for (const layer of layers) h = dense(layer, h, this.act);
     return h;
@@ -327,12 +344,13 @@ function roundWeights(file: MlpModelFile): MlpModelFile {
   return { ...file, policyNet: file.policyNet.map(r), actionNet: r(file.actionNet), valueNet: file.valueNet.map(r), valueHead: r(file.valueHead) };
 }
 
-function dense(layer: DenseLayer, x: Float64Array, act: (v: number) => number): Float64Array {
-  const out = new Float64Array(layer.bias.length);
+function dense(layer: PackedLayer, x: Float64Array, act: (v: number) => number): Float64Array {
+  const { w, b, inputs } = layer;
+  const out = new Float64Array(b.length);
   for (let o = 0; o < out.length; o++) {
-    const row = layer.weight[o];
-    let s = layer.bias[o];
-    for (let i = 0; i < row.length; i++) s += row[i] * x[i];
+    let s = b[o];
+    const base = o * inputs;
+    for (let i = 0; i < inputs; i++) s += w[base + i] * x[i];
     out[o] = act(s);
   }
   return out;

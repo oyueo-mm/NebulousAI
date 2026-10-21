@@ -145,7 +145,7 @@ export function ReportView({ report, live }: { report: TournamentReport; live: b
           {!live && (
             <>
               <button type="button" className="text-indigo-600 hover:underline" onClick={() => downloadText(`${report.name}.json`, JSON.stringify(report, null, 1))}>JSON</button>
-              <button type="button" className="text-indigo-600 hover:underline" onClick={() => downloadText(`${report.name}.csv`, reportToCsv(report), 'text/csv')}>CSV</button>
+              {report.results.length > 0 && <button type="button" className="text-indigo-600 hover:underline" onClick={() => downloadText(`${report.name}.csv`, reportToCsv(report), 'text/csv')}>CSV</button>}
             </>
           )}
         </div>

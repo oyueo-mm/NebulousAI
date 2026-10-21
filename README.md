@@ -7,80 +7,100 @@ reinforcement-learning agents survive and compete in a multi-agent arena.*
 
 **Live demo: https://oyueo-mm.github.io/NebulousAI/**
 
-NebulousAI is inspired by the cell-survival genre (Agar.io, Nebulous.io). It is an independent
-project with its own rules, code and graphics; it is not affiliated with, endorsed by, or derived from
-any commercial game, and it never connects to any game server.
+NebulousAI is inspired by the cell-survival genre (Agar.io, Nebulous.io). It is an independent project
+with its own rules, code and graphics; it is not affiliated with or endorsed by any commercial game,
+uses none of their code or assets, and never connects to a game server.
 
-![Watch mode with the decision inspector](docs/images/watch.png)
+![Watching a trained PPO agent: its chosen action, action probabilities and value estimate](docs/images/watch-ppo.png)
 
 ## What you can do
 
 | Mode | |
 |---|---|
-| **Play** | Steer a cell with the mouse (or WASD / arrows, or an on-screen joystick on touch screens), eat food, swallow smaller cells, split (Space) to attack or escape, eject mass (E). 15 AI opponents, including the trained PPO network. |
-| **Watch AI** | Pick how many of each AI play, follow any agent, pause / step / speed up to 16× or max, and open the **inspector**: what the agent sees, its mode, target, threats and risk (heuristics) or its observation vector, action probabilities and value estimate (PPO). Optional risk heatmap. |
-| **Tournament** | Headless matches in a background worker over many seeds with spawn-position rotation; win rate with Wilson intervals, survival / mass with 95 % CIs; JSON/CSV export. Reference results from the CLI are shown alongside. |
-| **RL Lab** | The shipped networks (trained and untrained), their training curves and curriculum, and the exact observation, action and reward definitions. |
+| **Play** | Steer a cell with the mouse (or WASD / arrow keys, or an on-screen joystick on touch screens), eat food, swallow smaller cells, split (Space) to attack or escape, eject mass (E). Fifteen AI opponents, including the trained network. |
+| **Watch AI** | Choose how many of each AI play, follow any agent, pause / step one tick / run up to 16× or "Max", and open the **inspector**: what the agent sees, its mode, target, threats and risk (heuristics) — or its observation vector, action probabilities and value estimate (neural). Optional heuristic risk heatmap. |
+| **Tournament** | Headless matches in a background worker over many seeds with spawn-position rotation; win rate with Wilson intervals, survival and mass with 95 % CIs; JSON / CSV export. Reference results from the CLI are shown alongside. |
+| **RL Lab** | Every shipped network (trained and untrained) with its training curve, curriculum, imitation initialisation and held-out evaluation, plus the exact observation, action and reward definitions. |
 
 Everything runs in the browser; there is no backend.
 
+| | |
+|---|---|
+| ![Play mode](docs/images/play.png) | ![Tournament](docs/images/tournament.png) |
+| ![Heuristic agent with its target and risk overlay](docs/images/watch-heuristic.png) | ![RL Lab](docs/images/lab.png) |
+
+## Results in one paragraph
+
+Pure PPO (three generations, up to 22 M steps) learned to forage and evade better than the
+hand-written heuristics but stayed far behind them in the full game (death rate 0.50 – 0.71 vs
+0.04 – 0.15). Behaviour cloning with DAgger from the heuristics reached heuristic level, and PPO
+fine-tuning on top of it (**ppo-v4**, the default model) exceeded every heuristic in held-out
+full-game evaluation: return 26.6 ± 1.3 vs 23.7 ± 1.5 for the best heuristic, final mass 308 vs 224,
+death rate 0.02 vs 0.04 (48 held-out seeds, the same heuristic opponents as in training). In
+12-agent free-for-alls it has the best average rank and mass, but its win rate is statistically tied
+with Greedy and Aggressive. The pure-RL agents also discovered a rules loophole — staying split into
+small cells so that mass decay never applies. Details, caveats and all tables:
+[docs/EXPERIMENTS.md](docs/EXPERIMENTS.md).
+
 ## Implemented vs. planned
 
-Implemented and tested: the deterministic engine (movement, food, predation with deterministic
-contest resolution, split, merge, eject, thorns, decay, respawn, mass ledger); play and watch modes;
-five heuristic AIs; the decision inspector and heuristic risk heatmap; save / load of complete game
-states; browser and CLI tournaments; Gymnasium, Stable-Baselines3 and PettingZoo environments driven by
-the same engine; PPO training with a five-stage curriculum including self-play; export to the browser
-with a tested TypeScript MLP; GitHub Actions CI and Pages deployment.
+**Implemented and tested**: the deterministic engine (movement, food, predation with order-independent
+contest resolution, split, merge, eject, thorns, decay, respawn, mass ledger); play and watch modes with
+mouse, keyboard and touch controls; five heuristic AIs; the decision inspector and heuristic risk
+heatmap; save / load of complete game states; browser and CLI tournaments; Gymnasium, Stable-Baselines3
+and PettingZoo environments driven by the same engine; PPO and MaskablePPO training with curricula and
+self-play; behaviour cloning + DAgger initialisation; held-out evaluation; export to the browser with a
+TypeScript MLP verified against PyTorch; GitHub Actions CI and Pages deployment.
 
-Not done (see [Roadmap](#roadmap)): simultaneous multi-learner training (the PettingZoo environment
-exists and passes the API test, but the shipped model trained one learner at a time), continuous
-action spaces, thorn feeding / shooting, testing on real touch hardware.
+**Not done** (see [Roadmap](#roadmap)): simultaneous multi-learner training (the PettingZoo environment
+exists and passes the API test, but no model was trained with it), rules-v2 fixing the decay
+loophole, continuous action spaces, thorn feeding / shooting, testing on real touch hardware,
+Safari and Firefox.
 
 ## Game rules (short)
 
-`r = 4√m`; speed falls with mass (`230·(m/20)^-0.36`, floor 40); a cell eats a different owner's cell
-when it is ≥ 1.25× heavier and the prey's centre is 0.4 r_prey inside its edge; simultaneous contests go
-to the largest predator, independent of object order. Split halves a cell (≥ 36 mass, up to 16 cells,
-0.5 s cooldown) and launches the half 160 wu forward; halves merge back after 9 – 25 s. Eject fires 16
-mass of which 12.8 survive as a pellet. Large cells (≥ 143) that cover a thorn burst into up to 9
-pieces; small cells can hide under thorns. Mass above 60 decays 0.2 %/s. Full specification:
-[docs/RULES.md](docs/RULES.md).
+`r = 4√m`; speed falls with mass (`230·(m/20)^-0.36`, floor 40 wu/s); a cell eats a different owner's
+cell when it is ≥ 1.25× heavier and the prey's centre is 0.4 r_prey inside its edge; simultaneous
+contests go to the largest predator, independent of object order. Split halves a cell (≥ 36 mass, up
+to 16 cells, 0.5 s cooldown) and launches the half ≈ 160 wu forward; halves merge back after 9 – 25 s.
+Eject fires 16 mass of which 12.8 survive as a pellet. Large cells (≥ 143) that cover a thorn burst into
+up to 9 pieces; small cells can hide under thorns. Mass above 60 per cell decays 0.2 % per second.
+Full specification: [docs/RULES.md](docs/RULES.md).
 
 ## AI
 
 * **Random** — seeded random walk (lower bound).
 * **Greedy** — flee if in danger, else chase the most valuable prey (naive split attacks), else food.
 * **Survival** — scores 16 headings by predicted, pursuit-aware danger (walls and corners included)
-  versus food; never hunts; emergency split-escape.
-* **Aggressive** — intercept planning with prey motion prediction, split attacks only when the odds are
+  against food; never hunts; emergency split-escape.
+* **Aggressive** — intercept planning with prey-motion prediction; split attacks only when the odds are
   good and no bystander could eat its halves.
-* **Hybrid** — switches between Survival, Aggressive hunting and safe foraging.
-* **PPO** — a 139 → 128 → 128 → 27 MLP trained with Stable-Baselines3 against the real engine,
-  executed in the browser by a TypeScript forward pass.
+* **Hybrid** — switches between survival, hunting and safe foraging.
+* **PPO** — 139 → 128 → 128 → 27 MLP trained against the real engine and executed in the browser.
+  The inspector shows its actual outputs; it never invents a "target".
 
-Details and the measured bugs found while building them: [docs/AI_ALGORITHMS.md](docs/AI_ALGORITHMS.md).
+Details, including the bugs found while measuring them: [docs/AI_ALGORITHMS.md](docs/AI_ALGORITHMS.md).
 
 ## Reinforcement learning
 
 Python never re-implements the game: the Gymnasium / SB3 / PettingZoo environments drive the
 TypeScript engine through a Node bridge, so training and the browser share the rules, the
-observation encoder (`obs-v1`, 139 floats, vision-limited), the 27 discrete actions (`act-v1`) and
-the reward (`reward-v1`). This is verified by a golden trajectory reproduced bit-for-bit by both sides
-and by an independent Python rule checker. Results — including where PPO is *worse* than the
-heuristics — are in [docs/EXPERIMENTS.md](docs/EXPERIMENTS.md); the setup is in
+observation encoder (`obs-v1`, 139 floats, vision-limited), the 27 discrete actions (`act-v1`) and the
+reward (`reward-v1`). This is verified by a golden trajectory reproduced bit for bit by both sides, by
+an independent Python rule checker, and by evaluation episodes that are identical whether the network
+runs in PyTorch or in the TypeScript MLP. Setup:
 [docs/REINFORCEMENT_LEARNING.md](docs/REINFORCEMENT_LEARNING.md).
 
 ```bash
 npm ci && npm run build:node
 pip install torch --index-url https://download.pytorch.org/whl/cpu && pip install -r rl/requirements.txt
-python -m rl.train --config rl/configs/ppo_v2.json          # ≈ 25 min on an 8-thread CPU
-python -m rl.evaluate --config rl/configs/ppo_v2.json --model rl/checkpoints/ppo-v2/final.zip \
-  --model-json public/models/ppo-v2.json --untrained-json public/models/ppo-untrained.json --episodes 48
-python -m rl.export --config rl/configs/ppo_v2.json --model rl/checkpoints/ppo-v2/final.zip --id ppo-v2 \
-  --meta rl/checkpoints/ppo-v2/training_meta.json --out public/models/ppo-v2.json \
-  --fixture rl/tests/fixtures/ppo-v2-equivalence.json
+python -m rl.train   --config rl/configs/smoke.json     # 20-second wiring check
+python -m rl.train   --config rl/configs/ppo_v2.json    # pure (Maskable)PPO curriculum, ~30 min on 8 CPU threads
+python -m rl.imitate --config rl/configs/bc_v4.json     # behaviour cloning + DAgger, ~10 min
+python -m rl.train   --config rl/configs/ppo_v4.json    # PPO from the imitation policy, ~50 min
 ```
+
+Export, evaluation and tournament commands: [docs/EXPERIMENTS.md#reproduce](docs/EXPERIMENTS.md#reproduce).
 
 ## Tech stack
 
@@ -93,25 +113,26 @@ Playwright · Python 3.12 · PyTorch · NumPy · Gymnasium · Stable-Baselines3 
 npm ci
 npm run dev            # http://127.0.0.1:5173/NebulousAI/
 npm run build && npm run preview
-npm run tournament -- --preset heuristics --seeds 20 --out public/results
+npm run tournament -- --preset heuristics --seeds 20
 npm run benchmark
 ```
 
 ## Tests
 
 ```bash
-npm test                                         # engine, AI, encodings, golden trajectory, inference equivalence
-npm run build:node && python -m pytest rl/tests  # TS↔Python equivalence, rule conformance, Gymnasium/SB3/PettingZoo checkers
-npm run build && npm run test:e2e                # Playwright: desktop + mobile emulation
+npm test                                         # 68 tests: engine, AI, encodings, golden trajectory, inference equivalence
+npm run build:node && python -m pytest rl/tests  # TS↔Python equivalence, rule conformance, Gymnasium / SB3 / PettingZoo checkers
+npm run build && npm run test:e2e                # Playwright: desktop Chromium + mobile emulation
 ```
 
-What each suite covers and what is *not* covered: [docs/TESTING.md](docs/TESTING.md).
+Coverage and what is *not* covered: [docs/TESTING.md](docs/TESTING.md).
 
 ## Performance
 
-Measured numbers (simulation UPS, world / policy time per tick, headless speed, training throughput)
-are in [docs/BENCHMARK.md](docs/BENCHMARK.md). The browser shows live Render FPS, simulation UPS,
-achieved speed and per-tick world / AI cost in the Performance tab.
+On an Intel Core Ultra 7 256V: the world step costs < 0.1 ms per tick up to 50 agents and 2 000 food;
+headless simulation runs 46 – 187× real time without PPO agents and 19 – 46× with them; the browser
+keeps 60 render FPS and full real-time speed with 50 agents (25 of them neural) and reaches 45× at
+"Max". Tables and method: [docs/BENCHMARK.md](docs/BENCHMARK.md).
 
 ## Documentation
 
@@ -121,15 +142,22 @@ achieved speed and per-tick world / AI cost in the Performance tab.
 
 ## Roadmap
 
+* rules-v2: apply mass decay to an agent's total mass (closing the fragmentation loophole), retrain.
+* Evaluation against held-out opponent types (not only held-out seeds).
 * Multi-learner PPO through the PettingZoo environment; league training against past snapshots.
-* Hybrid action space (continuous heading + discrete special).
+* Hybrid action space (continuous heading + discrete special); attention over a variable number of
+  visible cells.
 * Thorn feeding and shooting via ejected mass.
-* Recurrent or attention-based policies over a variable number of visible cells.
 * Real-device touch testing; Safari and Firefox in CI.
 
 ## License and references
 
-MIT — see [LICENSE](LICENSE). Algorithms: Schulman et al., *Proximal Policy Optimization Algorithms*
-(2017); Huang & Ontañón, *A Closer Look at Invalid Action Masking in Policy Gradient Algorithms*
-(2020); libraries as listed above. Genre inspiration only: Agar.io and Nebulous.io are trademarks of
-their respective owners; this project uses none of their code or assets.
+MIT — see [LICENSE](LICENSE).
+
+* Schulman et al., *Proximal Policy Optimization Algorithms*, 2017.
+* Huang & Ontañón, *A Closer Look at Invalid Action Masking in Policy Gradient Algorithms*, 2020.
+* Ross, Gordon & Bagnell, *A Reduction of Imitation Learning and Structured Prediction to No-Regret
+  Online Learning* (DAgger), 2011.
+* Raffin et al., *Stable-Baselines3*, JMLR 2021; Terry et al., *PettingZoo*, NeurIPS 2021.
+
+Genre inspiration only: Agar.io and Nebulous.io are trademarks of their respective owners.

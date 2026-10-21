@@ -1,7 +1,7 @@
 /**
  * Headless tournament runner.
- *   node dist-node/tournament.mjs --preset heuristics --seeds 20 --out docs/results
- *   node dist-node/tournament.mjs --preset ppo-mixed --model ppo-v3 --seeds 20 --out public/results
+ *   node dist-node/tournament.mjs --preset heuristics --seeds 20 --out docs/results/tournaments --web public/results
+ *   node dist-node/tournament.mjs --preset ppo-mixed --model ppo-v4 --seeds 20 --out docs/results/tournaments --web public/results
  *   node dist-node/tournament.mjs --spec my-spec.json
  */
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
@@ -46,6 +46,12 @@ if (out) {
   mkdirSync(out, { recursive: true });
   writeFileSync(join(out, `${spec.name}.json`), JSON.stringify(report));
   writeFileSync(join(out, `${spec.name}.csv`), reportToCsv(report));
+}
+const web = arg('web');
+if (web) {
+  // The browser only needs the aggregated entries; per-match rows stay in --out (JSON + CSV).
+  mkdirSync(web, { recursive: true });
+  writeFileSync(join(web, `${spec.name}.json`), JSON.stringify({ ...report, results: [], summaryOnly: true }));
 }
 const pct = (v: number) => `${(v * 100).toFixed(1)}%`;
 console.log(`\n${spec.name}: ${report.matches} matches, ${report.wallSeconds.toFixed(1)} s wall, ${report.simSecondsPerWallSecond.toFixed(0)}x real time`);

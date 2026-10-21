@@ -38,10 +38,17 @@ Perception only reports entities inside vision; dead agents perceive nothing; he
 finite actions with |a| ≤ 1; Greedy heads for food; Survival flees a big threat; Aggressive
 split-attacks reachable prey and declines when a bystander could eat its halves (this test found a
 real bug); Random is reproducible. The 27-action table, the 139-slot observation layout, padding /
-masks, finiteness and vision-independence are pinned. The MLP forward pass is checked against a
-hand-computed network; malformed models are rejected; softmax is stable. Reward-v1 cases. Matches are
+masks, finiteness and vision-independence are pinned; `encodeAction` inverts `decodeAction` for all 27
+actions. The MLP forward pass is checked against a hand-computed network; invalid-action masking zeroes
+exactly the impossible specials; malformed models are rejected; softmax is stable. Reward-v1 cases. Matches are
 reproducible including AI decisions; decisions happen only on decision ticks; external split fires
 once; reward windows; ranking order; tournament scheduling and aggregation; Wilson intervals.
+
+## Experiment files (`src/ui/settings.test.ts`)
+
+Saved experiments round-trip and restore; malformed JSON, wrong formats, out-of-range seeds, sizes and
+bot counts, hostile snapshots and files over 25 MB are rejected with readable errors; UI values are
+clamped; corrupted world data (non-finite masses) is rejected when the snapshot is loaded.
 
 ## TypeScript ↔ Python equivalence
 
@@ -73,7 +80,10 @@ asked to act again; VecEnv shapes, finiteness, auto-reset with `terminal_observa
 
 For every model in `public/models/index.json` a fixture of real engine observations with PyTorch's
 logits, probabilities and values (float64) must be reproduced by the TypeScript MLP: |Δlogit| < 1e-5,
-|Δp| < 1e-6, |ΔV| < 1e-5, identical argmax. A shipped model without a fixture fails the suite.
+|Δp| < 1e-6, |ΔV| < 1e-5, identical argmax of the (masked) distribution. All five shipped models pass;
+the measured differences are ≈ 5e-15. A shipped model without a fixture fails the suite. End to end,
+`rl.evaluate` plays the same held-out seeds once with PyTorch and once with the TypeScript inference:
+48/48 identical episodes in each of five scenarios (EXPERIMENTS.md).
 
 ## Browser (`tests/e2e.spec.ts`, Playwright on the production build)
 

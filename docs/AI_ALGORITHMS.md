@@ -66,19 +66,26 @@ deaths to ≈ 6–10 %.
 Mode switch: if risk > 0.45 → Survival's decision; else if a hunt has split odds ≥ 0.4 or a prey with
 ≥ 8 % of our mass is catchable within 4 s → Aggressive's hunt; else safe foraging (direct to the best
 food cluster when the path danger ≤ 0.2, otherwise Survival's heading scorer with a heavier food
-weight). It is meant as the strong heuristic baseline. Measured results
-([EXPERIMENTS.md](EXPERIMENTS.md)) show it is a cautious generalist: it survives about as often as
-Survival with more mass, but it does not win the most matches — Greedy and Aggressive win more often
-through high-variance aggression.
+weight). It was meant as the strong heuristic baseline. Measured results
+([EXPERIMENTS.md](EXPERIMENTS.md)) show a cautious generalist: it survives about as often as Survival,
+but it does not win the most matches — Greedy and Aggressive win more often through high-variance
+aggression — and in the full-game learner-slot evaluation Survival, not Hybrid, is the strongest
+heuristic.
 
 ## PPO (neural)
 
 `src/ai/neural.ts`: `obs-v1` encoding (139 floats) → VecNormalize statistics → MLP
-(139 → 128 → 128 → 27, tanh; separate 128 → 128 → 1 value network) → softmax → sample (default) or
-argmax. Weights are exported from Stable-Baselines3 and checked against PyTorch outputs (see
-[REINFORCEMENT_LEARNING.md](REINFORCEMENT_LEARNING.md)). The browser inspector shows the observation,
-the top action probabilities, the chosen action and V(s); it draws no "target" because the network
-has none.
+(139 → 128 → 128 → 27, tanh; separate 139 → 128 → 128 → 1 value network) → invalid-action mask (models
+trained with masking) → softmax → sample or argmax ("Deterministic PPO" toggle; argmax is clearly
+stronger for v4). Weights are exported from Stable-Baselines3 / sb3-contrib and checked against PyTorch
+outputs (see [REINFORCEMENT_LEARNING.md](REINFORCEMENT_LEARNING.md)). The browser inspector shows the
+observation, the top action probabilities, the chosen action and V(s); it draws no "target" because
+the network has none.
+
+Shipped networks: `ppo-v4` (default; imitation-initialised MaskablePPO), `ppo-v3`, `ppo-v2`, `ppo-v1`
+(pure RL generations) and `ppo-untrained` (random weights). Measured strengths and weaknesses of each
+are in [EXPERIMENTS.md](EXPERIMENTS.md); in short, only v4 matches or beats the heuristics in the full
+game, and v1 – v3 exploit a decay loophole by staying fragmented.
 
 ## Ranking and metrics (tournaments)
 
