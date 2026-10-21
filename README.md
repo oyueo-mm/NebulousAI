@@ -17,12 +17,19 @@ uses none of their code or assets, and never connects to a game server.
 
 | Mode | |
 |---|---|
-| **Play** | Steer a cell with the mouse (or WASD / arrow keys, or an on-screen joystick on touch screens), eat food, swallow smaller cells, split (Space) to attack or escape, eject mass (E). Fifteen AI opponents, including the trained network. |
-| **Watch AI** | Choose how many of each AI play, follow any agent, pause / step one tick / run up to 16× or "Max", and open the **inspector**: what the agent sees, its mode, target, threats and risk (heuristics) — or its observation vector, action probabilities and value estimate (neural). Optional heuristic risk heatmap. |
+| **직접 플레이 (Play)** | Steer a cell with the mouse (or WASD / arrow keys, or an on-screen joystick on touch screens), eat food, swallow smaller cells, split (Space) to attack or escape, eject mass (E). Fifteen AI opponents, including the trained network. A first-visit guide and a **조작법** (controls) sheet explain everything; the HUD shows whether split and eject are available and, when you try anyway, says why not. |
+| **AI 관전 (Watch AI)** | Choose how many of each AI play, follow any agent, pause / step one tick, drag a **log-scale speed slider (0.25× – 50×)** or use **최대 속도** (Max), and open **AI 행동 분석** (the inspector): what the agent sees, its mode, target, threats and risk (heuristics) — or its observation vector, action probabilities and value estimate (neural). Optional heuristic risk heatmap. |
 | **Tournament** | Headless matches in a background worker over many seeds with spawn-position rotation; win rate with Wilson intervals, survival and mass with 95 % CIs; JSON / CSV export. Reference results from the CLI are shown alongside. |
 | **RL Lab** | Every shipped network (trained and untrained) with its training curve, curriculum, imitation initialisation and held-out evaluation, plus the exact observation, action and reward definitions. |
 
-Everything runs in the browser; there is no backend.
+Everything runs in the browser; there is no backend. The interface is in Korean; every visible string lives in
+[`src/i18n/ko.ts`](src/i18n/ko.ts) (one typed dictionary, so another language is a second file of the same shape).
+Model IDs, JSON keys and saved-file schemas are technical identifiers and stay untranslated.
+
+**Controls**: PC: mouse to steer, WASD / arrow keys, Space split, E eject, P / Esc pause, R restart. Phone: joystick
+(bottom left), 분열 / 방출 buttons (bottom right), pause in the dock; the speed chip opens a large slider sheet.
+**Speed** changes only how many fixed simulation ticks run per real second; the physics, AI and results are identical
+at every speed (tested). When a device cannot reach the target, the achieved speed is shown instead of the target.
 
 | | |
 |---|---|
@@ -120,9 +127,9 @@ npm run benchmark
 ## Tests
 
 ```bash
-npm test                                         # 68 tests: engine, AI, encodings, golden trajectory, inference equivalence
+npm test                                         # 78 tests: engine, AI, encodings, golden trajectory, inference equivalence, speed pacing, i18n coverage
 npm run build:node && python -m pytest rl/tests  # TS↔Python equivalence, rule conformance, Gymnasium / SB3 / PettingZoo checkers
-npm run build && npm run test:e2e                # Playwright: desktop Chromium + mobile emulation
+npm run build && npm run test:e2e                # Playwright: Korean UI, controls, speed slider, 6 viewports, mobile emulation
 ```
 
 Coverage and what is *not* covered: [docs/TESTING.md](docs/TESTING.md).
@@ -131,8 +138,9 @@ Coverage and what is *not* covered: [docs/TESTING.md](docs/TESTING.md).
 
 On an Intel Core Ultra 7 256V: the world step costs < 0.1 ms per tick up to 50 agents and 2 000 food;
 headless simulation runs 46 – 187× real time without PPO agents and 19 – 46× with them; the browser
-keeps 60 render FPS and full real-time speed with 50 agents (25 of them neural) and reaches 45× at
-"Max". Tables and method: [docs/BENCHMARK.md](docs/BENCHMARK.md).
+keeps 60 render FPS and full real-time speed with 50 agents (25 of them neural), holds a fixed 50× exactly in the
+default watch lineup and reaches about 90× in Max mode there (the heavy 25-PPO lineup reaches about 16× and the UI
+says so). Tables and method: [docs/BENCHMARK.md](docs/BENCHMARK.md).
 
 ## Documentation
 

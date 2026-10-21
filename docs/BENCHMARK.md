@@ -31,18 +31,24 @@ mean cost of one agent's decision (perception + policy); every AI decides every 
 
 ## Browser (`node scripts/browser-benchmark.mjs`, production build)
 
-Values read from the app's own Performance tab after 4 s in each state; viewport 1440 × 900, headless
+Values read from the app's own Performance tab (성능) after 4 s in each state, measured after the Korean UI and speed-slider update; viewport 1440 × 900, headless
 Chromium (rendering still goes through the Canvas 2D path; headless frame pacing is capped at 60 Hz).
 Worker timings are averaged over 500 ms windows because browsers coarsen `performance.now()`.
 
 | state | render FPS | simulation UPS | achieved speed | world ms/tick | AI ms/tick | worker ms/frame |
 |---|---:|---:|---:|---:|---:|---:|
-| Watch, default lineup (12 agents incl. 2 PPO), 1× | 60 | 29 | 0.98× | 0.12 | 0.28 | 0.30 |
-| Watch, same lineup, **Max** speed | 60 | 1 354 | **45×** | 0.06 | 0.23 | 12.3 |
-| Watch, 50 heuristic agents, 1 000 food, 1× | 60 | 29 | 0.97× | 0.13 | 0.76 | 0.60 |
-| Watch, 50 agents incl. 25 PPO, 1× | 60 | 30 | 1.00× | 0.17 | 2.37 | 2.03 |
-| Play, you + 15 bots, 1× | 60 | 30 | 1.01× | 0.11 | 0.56 | 0.46 |
+| watch default, 1x | 60 | 29 | 0.97× | 0.047 | 0.233 | 0.16 |
+| watch default, Max speed | 60 | 2738 | 91.27× | 0.040 | 0.220 | 12.26 |
+| watch default, fixed 50x | 60 | 1501 | 50.04× | 0.039 | 0.237 | 6.79 |
+| 50 heuristic agents, 1000 food, 1x | 60 | 31 | 1.05× | 0.137 | 0.487 | 0.32 |
+| 50 agents incl. 25 PPO, 1x | 60 | 32 | 1.05× | 0.119 | 1.788 | 1.01 |
+| 50 agents incl. 25 PPO, target 50x | 60 | 493 | 16.43× | 0.059 | 1.428 | 13.56 |
+| play default (you + 15 bots), 1x | 60 | 29 | 0.97× | 0.053 | 0.280 | 0.17 |
 
+* The speed slider's fixed targets run 0.25× … 50×. In the default lineup 50× is held exactly; the heavy
+  25-PPO lineup reaches about 16× at a 50× target, and the UI shows that achieved value (amber) under the slider
+  instead of the target. Max mode is not a fixed rate (about 90× here, about 45× in an earlier run on the same
+  machine: it depends on whatever else the machine is doing).
 * Render FPS is measured on the main thread independently of the simulation: rendering never changes
   the simulated result (the simulation runs in the worker on fixed ticks).
 * At "Max" the worker spends ~12 ms per 16 ms iteration simulating and posts one frame per iteration.

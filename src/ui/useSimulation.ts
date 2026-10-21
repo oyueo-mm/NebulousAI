@@ -3,6 +3,7 @@ import type { MlpModelFile } from '../ai/rl';
 import type { AgentAction } from '../engine/types';
 import type { MatchSetup, MatchSnapshot } from '../sim/match';
 import type { AgentSummary, Frame, FrameStats, FromWorker, InspectDetail, ToWorker } from '../worker/protocol';
+import { t } from '../i18n';
 
 export interface FrameStore {
   prev: Frame | null;
@@ -83,10 +84,10 @@ export function useSimulation() {
         pendingSaves.current.get(msg.requestId)?.(msg.snapshot);
         pendingSaves.current.delete(msg.requestId);
       } else if (msg.type === 'error') {
-        setError(msg.message);
+        setError(t.app.simError(msg.message));
       }
     };
-    worker.onerror = (e) => setError(`simulation worker failed: ${e.message || 'unknown error'}`);
+    worker.onerror = (e) => setError(t.app.workerFailed(e.message || t.app.unknownError));
     return () => {
       worker.terminate();
       workerRef.current = null;

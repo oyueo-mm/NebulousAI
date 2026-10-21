@@ -22,6 +22,7 @@ export interface AgentSummary {
   id: number;
   name: string;
   kind: ControllerKind;
+  modelId: string | null;
   label: string;
   hue: number;
   alive: boolean;
@@ -39,6 +40,10 @@ export interface AgentSummary {
   mode: string;
   episodeReturn: number;
   canSplit: boolean;
+  /** Why a split / eject request would be accepted or rejected right now (mirrors the engine's checks). */
+  splitStatus: 'ready' | 'cooldown' | 'mass' | 'maxCells' | 'dead';
+  ejectStatus: 'ready' | 'cooldown' | 'mass' | 'dead';
+  largestMass: number;
   speed: number;
 }
 
@@ -83,7 +88,7 @@ export interface Frame {
   type: 'frame';
   tick: number;
   time: number;
-  world: { width: number; height: number };
+  world: { width: number; height: number; minSplitMass: number; minEjectMass: number; maxCells: number };
   cells: Float32Array;
   food: Float32Array;
   pellets: Float32Array;

@@ -4,15 +4,16 @@ import { chromium } from '@playwright/test';
 const base = 'http://127.0.0.1:4173/NebulousAI/';
 const browser = await chromium.launch();
 const page = await browser.newPage({ viewport: { width: 1440, height: 860 }, deviceScaleFactor: 1 });
+await page.addInitScript(() => localStorage.setItem('nebulousai.onboarding.never', '1'));
 
 await page.goto(`${base}#watch`);
 await page.getByTestId('dock').waitFor();
 await page.waitForTimeout(6000);
-await page.getByTestId('mini-leaderboard').locator('button', { hasText: 'PPO' }).first().click();
+await page.getByTestId('mini-leaderboard').locator('button', { hasText: '강화학습' }).first().click();
 await page.waitForTimeout(2500);
 await page.screenshot({ path: 'docs/images/watch-ppo.png' });
 
-await page.getByTestId('mini-leaderboard').locator('button', { hasText: 'Hybrid' }).first().click();
+await page.getByTestId('mini-leaderboard').locator('button', { hasText: '혼합형' }).first().click();
 await page.getByTestId('overlay-heatmap').click();
 await page.waitForTimeout(2500);
 await page.screenshot({ path: 'docs/images/watch-heuristic.png' });

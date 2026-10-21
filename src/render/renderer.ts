@@ -160,11 +160,11 @@ export function drawFrame(
       ctx.lineJoin = 'round';
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
-      ctx.font = `600 ${fs}px Inter, system-ui, sans-serif`;
+      ctx.font = `600 ${fs}px Inter, system-ui, 'Apple SD Gothic Neo', 'Malgun Gothic', 'Noto Sans KR', sans-serif`;
       ctx.strokeText(a.name, x, y - (px > 28 ? fs * 0.35 : 0));
       ctx.fillText(a.name, x, y - (px > 28 ? fs * 0.35 : 0));
       if (px > 28) {
-        ctx.font = `500 ${fs * 0.8}px Inter, system-ui, sans-serif`;
+        ctx.font = `500 ${fs * 0.8}px Inter, system-ui, 'Apple SD Gothic Neo', 'Malgun Gothic', 'Noto Sans KR', sans-serif`;
         ctx.strokeText(Math.round(mass).toString(), x, y + fs * 0.65);
         ctx.fillText(Math.round(mass).toString(), x, y + fs * 0.65);
       }
@@ -240,7 +240,7 @@ function drawInspection(ctx: CanvasRenderingContext2D, cam: Camera, ins: Inspect
       for (let i = 0; i < cells.length; i += CELL_STRIDE) {
         if (cells[i] !== id) continue;
         ctx.fillStyle = '#7c3aed';
-        ctx.font = `700 ${14 / cam.zoom}px Inter, system-ui, sans-serif`;
+        ctx.font = `700 ${14 / cam.zoom}px Inter, system-ui, 'Apple SD Gothic Neo', 'Malgun Gothic', 'Noto Sans KR', sans-serif`;
         ctx.textAlign = 'center';
         ctx.fillText(`#${slot}`, cells[i + 2], cells[i + 3] - cells[i + 4] - 8 / cam.zoom);
       }

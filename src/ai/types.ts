@@ -16,6 +16,15 @@ export const POLICY_LABELS: Record<PolicyKind, string> = {
 };
 
 /**
+ * Structured explanation attached to a heuristic decision. The UI renders it in the user's language;
+ * the numbers are the values the decision code actually computed.
+ */
+export interface TraceNote {
+  key: 'randomWalk' | 'threatGap' | 'safePath' | 'headings' | 'foodHeading' | 'intercept';
+  values: Record<string, number>;
+}
+
+/**
  * What a heuristic actually used to choose its action. Every field is produced by
  * the decision code itself, never reconstructed after the fact.
  */
@@ -30,7 +39,7 @@ export interface HeuristicTrace {
   risk: number;
   split: boolean;
   eject: boolean;
-  note: string;
+  note: TraceNote | null;
 }
 
 /** Neural policies expose their real outputs instead of an invented "goal". */

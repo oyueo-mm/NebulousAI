@@ -86,6 +86,13 @@ exactly the reward the trainer sees. A per-agent RNG stream makes stochastic pol
   loop redraws only when the frame, camera or size changed.
 * React state for panels is throttled to ~8 Hz; the 60 Hz path never touches React.
 * `tournament.worker.ts` runs headless matches back to back and streams partial reports.
+* `pacing.ts` (pure, unit-tested) decides how many fixed ticks a loop iteration runs: `owed += dtReal × speed`,
+  run `floor(owed / tick)` within the 12 ms budget, drop backlog above 4 ticks. Speed therefore never enters the
+  physics: the speed slider (log scale 0.25× – 50×) and Max mode only change the tick rate, and a test drives the
+  same match through different speed schedules to an identical state.
+* UI text: `src/i18n/ko.ts` holds every visible string (typed `Messages`); `src/i18n/index.ts` selects it. Heuristic
+  traces carry a mode identifier and a structured note (`{ key, values }`) that the UI renders in Korean, so no
+  display language leaks into the AI code.
 
 ## Python (`rl/`)
 

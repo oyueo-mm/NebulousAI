@@ -1,4 +1,5 @@
 import { MlpPolicyModel, type MlpModelFile } from '../ai/rl';
+import { t } from '../i18n';
 
 export interface ModelIndexEntry {
   id: string;
@@ -17,7 +18,7 @@ export interface LoadedModels {
 
 async function fetchModel(base: string, entry: ModelIndexEntry): Promise<MlpModelFile> {
   const res = await fetch(`${base}models/${entry.file}`);
-  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  if (!res.ok) throw new Error(t.models.http(res.status));
   const file = (await res.json()) as MlpModelFile;
   new MlpPolicyModel(file); // validates schema versions, shapes and finiteness
   return file;
@@ -34,10 +35,10 @@ export async function loadModels(base: string, onUpdate: (state: LoadedModels) =
   let index: ModelIndexEntry[] = [];
   try {
     const res = await fetch(`${base}models/index.json`);
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    if (!res.ok) throw new Error(t.models.http(res.status));
     index = (await res.json()) as ModelIndexEntry[];
   } catch (err) {
-    onUpdate({ files, errors: [`models/index.json: ${err instanceof Error ? err.message : String(err)}`], defaultId: null });
+    onUpdate({ files, errors: [t.models.indexFailed(err instanceof Error ? err.message : String(err))], defaultId: null });
     return;
   }
   const order = new Map(index.map((e, i) => [e.id, i]));
@@ -52,7 +53,7 @@ export async function loadModels(base: string, onUpdate: (state: LoadedModels) =
     try {
       files.push(await fetchModel(base, entry));
     } catch (err) {
-      errors.push(`${entry.file}: ${err instanceof Error ? err.message : String(err)}`);
+      errors.push(t.models.fileFailed(entry.file, err instanceof Error ? err.message : String(err)));
     }
   };
   const first = index.find((e) => e.default) ?? index.find((e) => e.trained) ?? index[0];

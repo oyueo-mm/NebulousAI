@@ -1,6 +1,7 @@
 import { Suspense, lazy, useCallback, useEffect, useRef, useState } from 'react';
 import { RULES_VERSION } from '../engine/config';
 import type { MlpModelFile } from '../ai/rl';
+import { t } from '../i18n';
 import { Arena } from './Arena';
 import { Badge, Logo, downloadText, formatTime } from './kit';
 import { loadModels } from './models';
@@ -11,16 +12,11 @@ import { useSimulation } from './useSimulation';
 const TournamentView = lazy(() => import('./TournamentView').then((m) => ({ default: m.TournamentView })));
 const LabView = lazy(() => import('./LabView').then((m) => ({ default: m.LabView })));
 
-const MODES: { id: Mode; label: string }[] = [
-  { id: 'play', label: 'Play' },
-  { id: 'watch', label: 'Watch AI' },
-  { id: 'tournament', label: 'Tournament' },
-  { id: 'lab', label: 'RL Lab' },
-];
+const MODES: Mode[] = ['play', 'watch', 'tournament', 'lab'];
 
 function modeFromHash(): Mode {
   const h = window.location.hash.replace('#', '');
-  return (MODES.some((m) => m.id === h) ? h : 'play') as Mode;
+  return (MODES.includes(h as Mode) ? h : 'play') as Mode;
 }
 
 /** Drops PPO agents whose model is not available so a setup never references a missing model. */
@@ -97,7 +93,7 @@ export function App() {
     const snapshot = await sim.api.save();
     const file: ExperimentFile = { format: 'nebulous-experiment', version: 1, rulesVersion: RULES_VERSION, savedAt: new Date().toISOString(), mode, arena: applied[mode], ui, snapshot };
     downloadText(`nebulous-${mode}-seed${applied[mode].seed}-t${Math.round(sim.ui.time)}.json`, JSON.stringify(file));
-    setNotice('State saved as JSON.');
+    setNotice(t.app.saved);
   };
 
   const load = async (f: File) => {
@@ -113,9 +109,9 @@ export function App() {
       setMode(exp.mode);
       if (exp.snapshot) sim.api.load(exp.snapshot, models); else start(exp.mode, settings);
       sim.api.setSpeed(exp.ui.speed);
-      setNotice(exp.snapshot ? 'Loaded saved state (paused). Press play to continue.' : 'Loaded settings.');
+      setNotice(exp.snapshot ? t.app.loadedState : t.app.loadedSettings);
     } catch (err) {
-      setNotice(`Could not load file: ${err instanceof Error ? err.message : String(err)}`);
+      setNotice(t.app.loadFailed(err instanceof Error ? err.message : String(err)));
     }
   };
 
@@ -127,45 +123,45 @@ export function App() {
 
   const live = mode === 'play' || mode === 'watch';
   const aliveCount = sim.ui.agents.filter((a) => a.alive).length;
-  const status = !live ? null : sim.ui.over ? <Badge tone="red">Finished</Badge> : sim.ui.running ? <Badge tone="green">Running</Badge> : <Badge tone="amber">Paused</Badge>;
+  const status = !live ? null : sim.ui.over ? <Badge tone="red">{t.app.status.finished}</Badge> : sim.ui.running ? <Badge tone="green">{t.app.status.running}</Badge> : <Badge tone="amber">{t.app.status.paused}</Badge>;
 
   return (
     <div className="flex h-dvh flex-col bg-slate-50 text-slate-800">
       <header className="flex h-14 shrink-0 items-center gap-3 border-b border-slate-200 bg-white px-3 md:px-4">
-        <a href="#play" onClick={() => switchMode('play')} className="flex items-center gap-2" aria-label="NebulousAI home">
+        <a href="#play" onClick={() => switchMode('play')} className="flex shrink-0 items-center gap-2" aria-label={t.app.home}>
           <Logo />
           <span className="hidden text-[15px] font-bold tracking-tight text-slate-900 sm:inline">Nebulous<span className="text-indigo-500">AI</span></span>
         </a>
         <nav className="flex min-w-0 flex-1 justify-center">
           <div className="flex gap-0.5 overflow-x-auto rounded-lg bg-slate-100 p-0.5" role="tablist">
             {MODES.map((m) => (
-              <button key={m.id} type="button" role="tab" aria-selected={mode === m.id} onClick={() => switchMode(m.id)} data-testid={`mode-${m.id}`}
-                className={`whitespace-nowrap rounded-md px-2.5 py-1.5 text-xs font-medium transition-colors sm:px-3.5 sm:text-sm ${mode === m.id ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-800'}`}>
-                {m.label}
+              <button key={m} type="button" role="tab" aria-selected={mode === m} aria-label={t.app.modes[m]} onClick={() => switchMode(m)} data-testid={`mode-${m}`}
+                className={`whitespace-nowrap rounded-md px-2.5 py-1.5 text-xs font-medium transition-colors sm:px-3.5 sm:text-sm pointer-coarse:py-2 ${mode === m ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-800'}`}>
+                <span className="sm:hidden">{t.app.modesShort[m]}</span><span className="hidden sm:inline">{t.app.modes[m]}</span>
               </button>
             ))}
           </div>
         </nav>
         <div className="hidden items-center gap-3 text-xs text-slate-500 md:flex">
           {live && <span className="tabular-nums" data-testid="match-time">{formatTime(sim.ui.time)}</span>}
-          {live && <span className="tabular-nums" data-testid="alive-count">{aliveCount}/{sim.ui.agents.length} alive</span>}
+          {live && <span className="tabular-nums" data-testid="alive-count">{t.app.alive(aliveCount, sim.ui.agents.length)}</span>}
           {status}
         </div>
       </header>
 
       <div className="relative flex min-h-0 flex-1">
-        {models === null && <div className="flex flex-1 items-center justify-center text-sm text-slate-400">Loading…</div>}
+        {models === null && <div className="flex flex-1 items-center justify-center text-sm text-slate-400">{t.app.loading}</div>}
         {models !== null && live && (
           <Arena
             key={mode} mode={mode} sim={sim} models={models} arena={arena[mode]} applied={applied[mode]}
             onArena={(a) => setArena((s) => ({ ...s, [mode]: a }))} ui={ui} onUi={setUi} onRestart={restart} onSave={save} onLoad={load}
           />
         )}
-        <Suspense fallback={<div className="flex flex-1 items-center justify-center text-sm text-slate-400">Loading…</div>}>
+        <Suspense fallback={<div className="flex flex-1 items-center justify-center text-sm text-slate-400">{t.app.loading}</div>}>
           {models !== null && mode === 'tournament' && <TournamentView models={models} />}
           {models !== null && mode === 'lab' && <LabView models={models} errors={modelErrors} />}
         </Suspense>
-        {notice && <div className="absolute left-1/2 top-3 z-30 -translate-x-1/2 rounded-lg bg-slate-900 px-3 py-2 text-sm text-white shadow-lg" role="status">{notice}</div>}
+        {notice && <div className="absolute left-1/2 top-3 z-30 w-max max-w-[90%] -translate-x-1/2 rounded-lg bg-slate-900 px-3 py-2 text-center text-sm text-white shadow-lg" role="status" data-testid="notice">{notice}</div>}
       </div>
     </div>
   );

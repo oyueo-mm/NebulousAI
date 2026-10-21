@@ -34,19 +34,28 @@ export function buildFrame(match: Match, opts: {
     let largest = 0;
     for (const c of w.cells) if (c.owner === a.id && c.mass > largest) largest = c.mass;
     const cfg = w.config;
+    // Same conditions World.trySplit / tryEject check, so the UI can say why a request would fail.
+    const splitStatus: AgentSummary['splitStatus'] = !a.alive ? 'dead'
+      : w.time - a.lastSplitAt < cfg.splitCooldown ? 'cooldown'
+      : a.cellCount >= cfg.maxCells ? 'maxCells'
+      : largest < cfg.minSplitMass ? 'mass' : 'ready';
+    const ejectStatus: AgentSummary['ejectStatus'] = !a.alive ? 'dead'
+      : w.time - a.lastEjectAt < cfg.ejectCooldown ? 'cooldown'
+      : largest < cfg.minEjectMass ? 'mass' : 'ready';
     return {
-      id: a.id, name: a.name, kind: match.kinds[a.id], label: match.policyLabel(a.id), hue: a.hue, alive: a.alive,
+      id: a.id, name: a.name, kind: match.kinds[a.id], modelId: match.setup.participants[a.id].modelId ?? null, label: match.policyLabel(a.id), hue: a.hue, alive: a.alive,
       mass: a.alive ? a.totalMass : 0, cells: a.cellCount, kills: a.stats.kills, cellsEaten: a.stats.cellsEaten, foodEaten: a.stats.foodEaten,
       splits: a.stats.splits, deaths: a.stats.deaths, killedBy: a.killedBy, maxMass: a.stats.maxMass, survival: a.aliveSeconds, rank: s.rank,
       mode: !a.alive ? 'dead' : trace ? (trace.kind === 'heuristic' ? trace.mode : 'neural policy') : match.kinds[a.id] === 'human' ? 'human' : '',
       episodeReturn: match.episodeReturn[a.id],
-      canSplit: a.alive && w.time - a.lastSplitAt >= cfg.splitCooldown && largest >= cfg.minSplitMass && a.cellCount < cfg.maxCells,
+      canSplit: splitStatus === 'ready', splitStatus, ejectStatus, largestMass: largest,
       speed: largest > 0 ? maxSpeed(largest, cfg) : 0,
     };
   });
 
   return {
-    type: 'frame', tick: w.tick, time: w.time, world: { width: w.config.worldWidth, height: w.config.worldHeight },
+    type: 'frame', tick: w.tick, time: w.time,
+    world: { width: w.config.worldWidth, height: w.config.worldHeight, minSplitMass: w.config.minSplitMass, minEjectMass: w.config.minEjectMass, maxCells: w.config.maxCells },
     cells, food, pellets, thorns, agents,
     inspect: opts.inspectId === null ? null : inspect(match, opts.inspectId, opts.heatmap),
     stats: opts.stats, running: opts.running, over: match.isOver(),

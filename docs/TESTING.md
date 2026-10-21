@@ -85,11 +85,29 @@ the measured differences are ≈ 5e-15. A shipped model without a fixture fails 
 `rl.evaluate` plays the same held-out seeds once with PyTorch and once with the TypeScript inference:
 48/48 identical episodes in each of five scenarios (EXPERIMENTS.md).
 
+## Speed pacing and UI text (`src/worker/pacing.test.ts`, `src/i18n/i18n.test.ts`, `src/ui/settings.test.ts`)
+
+The slider scale is logarithmic (0.25× … 50×, geometric midpoint, invertible); Max is a separate mode; stored
+speeds from older files (0.05 … 16, 1000) map onto it. Pacing runs speed × real time worth of ticks at every fixed
+speed (±3 %), reports a lower achieved speed instead of an unbounded backlog when ticks are too slow, and the same
+seed reaches a byte-identical state at tick 900 whether it runs at 0.25×, 1×, 50×, Max or a schedule switching
+between them. The i18n test plays real matches and requires a Korean rendering for every heuristic mode and note
+that occurs, every action, policy, shipped model, training stage, evaluation column and reference tournament.
+Experiment files keep their technical keys; parse errors are Korean.
+
 ## Browser (`tests/e2e.spec.ts`, Playwright on the production build)
 
-Desktop Chromium and Pixel 7 emulation: play mode renders a non-empty world (canvas pixels sampled)
-and the player grows by steering with the mouse; split → 2 cells → merge back (shortened timer) →
-eject lowers mass; a saved state edited to put the player inside a 900-mass predator loads, ends the
+Desktop Chromium, Pixel 7 emulation and six viewports (360×800, 390×844, 430×932 and 768×1024 with touch
+emulation; 1280×720, 1440×900): every page is Korean (no former English UI phrase, no button text overflow); the
+first-visit guide pauses the game, 시작하기 starts it and 다시 보지 않기 is remembered; Escape closes only the top
+dialog; the controls sheet lists PC and mobile controls; D / W / ArrowLeft / ArrowDown move the cell (positions read
+from saved states) and the mouse steers it until it grows; split and eject explain why they are unavailable and then
+work; P / Esc pause and R restarts; the speed slider responds to mouse drag, keyboard (Home / End / arrows), touch
+drag (CDP touch events) and 1×; the achieved speed at 10× is 8.5×–11.5×; speed changes while paused keep the game
+paused; Max is distinct and the page stays responsive; speed changes never reset the match; layouts have no
+horizontal overflow, the dock, joystick and action buttons do not overlap and are at least 44 px on touch screens,
+and the canvas is fully visible; a broken file shows a Korean error; split → 2 cells → merge back (shortened timer)
+→ eject lowers mass; a saved state edited to put the player inside a 900-mass predator loads, ends the
 game with the game-over screen, and restarts; loading the same save twice and stepping 40 ticks gives
 identical leaderboards; watch mode lineup change, inspector, heatmap, 8× speed, free camera, fit, reset;
 the canvas is never blank while panels toggle, the window resizes and the game is paused; analytics
@@ -98,5 +116,5 @@ with trained/untrained badges; mobile HUD, dock, joystick and split button, no h
 Every test fails on console errors, page errors or any HTTP status ≥ 400 (404s, missing workers or
 models).
 
-**Not covered**: real touch hardware (only Chromium mobile emulation), Safari/Firefox, and very slow
-devices.
+**Not covered**: real touch hardware (only Chromium mobile emulation with CDP touch events), Safari/Firefox,
+and very slow devices.

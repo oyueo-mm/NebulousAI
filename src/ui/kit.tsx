@@ -1,4 +1,5 @@
 import { useState, type ReactNode } from 'react';
+import { t } from '../i18n';
 
 export function Logo({ size = 28 }: { size?: number }) {
   return (
@@ -78,9 +79,9 @@ export function Stepper({ label, value, onChange, min = 0, max = 64, dot, testId
         {label}
       </span>
       <span className="flex items-center rounded-md border border-slate-200">
-        <button type="button" aria-label={`fewer ${label}`} className="px-2 py-0.5 text-slate-500 hover:bg-slate-50 disabled:opacity-30" disabled={value <= min} onClick={() => onChange(value - 1)}>−</button>
+        <button type="button" aria-label={t.settings.fewer(label)} className="px-2 py-0.5 text-slate-500 hover:bg-slate-50 disabled:opacity-30 pointer-coarse:px-3.5 pointer-coarse:py-2" disabled={value <= min} onClick={() => onChange(value - 1)}>−</button>
         <span className="w-7 text-center tabular-nums" data-testid={testId}>{value}</span>
-        <button type="button" aria-label={`more ${label}`} className="px-2 py-0.5 text-slate-500 hover:bg-slate-50 disabled:opacity-30" disabled={value >= max} onClick={() => onChange(value + 1)}>+</button>
+        <button type="button" aria-label={t.settings.more(label)} className="px-2 py-0.5 text-slate-500 hover:bg-slate-50 disabled:opacity-30 pointer-coarse:px-3.5 pointer-coarse:py-2" disabled={value >= max} onClick={() => onChange(value + 1)}>+</button>
       </span>
     </div>
   );
@@ -104,11 +105,11 @@ export function Badge({ children, tone = 'slate' }: { children: ReactNode; tone?
   return <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-medium ring-1 ring-inset ring-transparent ${tones[tone]}`}>{children}</span>;
 }
 
-export function IconButton({ label, onClick, children, active, disabled, testId }: { label: string; onClick: () => void; children: ReactNode; active?: boolean; disabled?: boolean; testId?: string }) {
+export function IconButton({ label, onClick, children, active, disabled, testId, className = '' }: { label: string; onClick: () => void; children: ReactNode; active?: boolean; disabled?: boolean; testId?: string; className?: string }) {
   return (
     <button
       type="button" title={label} aria-label={label} onClick={onClick} disabled={disabled} data-testid={testId}
-      className={`flex h-9 min-w-9 items-center justify-center rounded-lg px-2 text-sm font-medium transition-colors disabled:opacity-40 ${active ? 'bg-indigo-500 text-white hover:bg-indigo-600' : 'text-slate-600 hover:bg-slate-100'}`}
+      className={`flex h-9 min-w-9 shrink-0 items-center justify-center gap-1 rounded-lg px-2 text-sm font-medium transition-colors disabled:opacity-40 pointer-coarse:h-11 pointer-coarse:min-w-11 ${className} ${active ? 'bg-indigo-500 text-white hover:bg-indigo-600' : 'text-slate-600 hover:bg-slate-100'}`}
     >
       {children}
     </button>
@@ -133,4 +134,32 @@ export function downloadText(name: string, text: string, type = 'application/jso
   a.click();
   a.remove();
   setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+/** localStorage / sessionStorage that never throws (private windows, blocked storage, previews). */
+export const safeStorage = {
+  get(kind: 'local' | 'session', key: string): string | null {
+    try { return (kind === 'local' ? window.localStorage : window.sessionStorage).getItem(key); } catch { return null; }
+  },
+  set(kind: 'local' | 'session', key: string, value: string): void {
+    try { (kind === 'local' ? window.localStorage : window.sessionStorage).setItem(key, value); } catch { /* storage unavailable: feature degrades to per-visit */ }
+  },
+};
+
+/** Modal on wide screens, bottom sheet on phones. Closes on backdrop click and Escape. */
+export function Sheet({ title, onClose, children, testId, footer }: { title: string; onClose: () => void; children: ReactNode; testId?: string; footer?: ReactNode }) {
+  return (
+    <div className="fixed inset-0 z-50 flex items-end justify-center bg-slate-900/30 backdrop-blur-[1px] sm:items-center" onClick={onClose}
+      onKeyDown={(e) => { if (e.key === 'Escape') { e.stopPropagation(); onClose(); } }}>
+      <div role="dialog" aria-modal="true" aria-label={title} data-testid={testId} onClick={(e) => e.stopPropagation()}
+        className="max-h-[85dvh] w-full overflow-y-auto rounded-t-2xl bg-white p-5 shadow-2xl ring-1 ring-slate-200 sm:max-w-lg sm:rounded-2xl">
+        <div className="mb-3 flex items-start justify-between gap-3">
+          <h2 className="text-base font-bold text-slate-900">{title}</h2>
+          <button type="button" onClick={onClose} aria-label={t.controls.close} className="-mr-1 -mt-1 flex h-9 w-9 items-center justify-center rounded-lg text-slate-400 hover:bg-slate-100 hover:text-slate-700 pointer-coarse:h-11 pointer-coarse:w-11">✕</button>
+        </div>
+        {children}
+        {footer && <div className="mt-4">{footer}</div>}
+      </div>
+    </div>
+  );
 }

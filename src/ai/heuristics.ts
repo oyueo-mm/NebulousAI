@@ -18,7 +18,7 @@ function unit(dx: number, dy: number): { x: number; y: number } {
 }
 
 function trace(mode: string, partial: Partial<HeuristicTrace> = {}): HeuristicTrace {
-  return { kind: 'heuristic', mode, target: null, targetKind: null, preyId: null, threatIds: [], risk: 0, split: false, eject: false, note: '', ...partial };
+  return { kind: 'heuristic', mode, target: null, targetKind: null, preyId: null, threatIds: [], risk: 0, split: false, eject: false, note: null, ...partial };
 }
 
 function act(dir: { x: number; y: number }, split = false, eject = false): AgentAction {
@@ -142,7 +142,7 @@ export class RandomPolicy implements Policy {
     const eject = rng.next() < 0.01;
     return {
       action: act(dir, split, eject),
-      trace: trace('random walk', { target: { x: p.cx + dir.x * 250, y: p.cy + dir.y * 250 }, targetKind: 'wander', split, eject, note: 'uniform random heading, 10% re-roll per decision' }),
+      trace: trace('random walk', { target: { x: p.cx + dir.x * 250, y: p.cy + dir.y * 250 }, targetKind: 'wander', split, eject, note: { key: 'randomWalk', values: {} } }),
     };
   }
 }
@@ -155,7 +155,7 @@ export class GreedyPolicy implements Policy {
     const threatIds = list.filter((t) => t.danger > 0).map((t) => t.cell.id);
     if (risk > 0.55) {
       const dir = fleeDirection(p, list);
-      return { action: act(dir), trace: trace('flee', { target: { x: p.cx + dir.x * 300, y: p.cy + dir.y * 300 }, targetKind: 'flee', threatIds, risk, note: `nearest threat gap ${list[0].gap.toFixed(0)}` }) };
+      return { action: act(dir), trace: trace('flee', { target: { x: p.cx + dir.x * 300, y: p.cy + dir.y * 300 }, targetKind: 'flee', threatIds, risk, note: { key: 'threatGap', values: { gap: list[0].gap } } }) };
     }
     let prey: SeenCell | null = null, preyScore = 0;
     for (const o of preyCandidates(p)) {
@@ -187,7 +187,7 @@ export class SurvivalPolicy implements Policy {
     const threatIds = list.filter((t) => t.danger > 0).map((t) => t.cell.id);
     const calm = risk < 0.15 ? safeFood(p, list, 0.1) : null;
     if (calm) {
-      return { action: act(calm.dir), trace: trace('forage', { target: calm.target, targetKind: 'food', threatIds, risk, note: 'straight path to best food cluster predicted safe' }) };
+      return { action: act(calm.dir), trace: trace('forage', { target: calm.target, targetKind: 'food', threatIds, risk, note: { key: 'safePath', values: {} } }) };
     }
     const { dir, danger } = scoreDirections(p, list, 0.6 * (1 - risk), lastActionOf(p));
     // Last resort: when contact is imminent, split away so at least the launched half escapes.
@@ -198,7 +198,7 @@ export class SurvivalPolicy implements Policy {
       action: act(dir, split),
       trace: trace(split ? 'escape split' : mode, {
         target: { x: p.cx + dir.x * 300, y: p.cy + dir.y * 300 }, targetKind: risk > 0.5 ? 'flee' : 'food', threatIds, risk, split,
-        note: `best of 16 headings, predicted danger ${danger.toFixed(2)}`,
+        note: { key: 'headings', values: { danger } },
       }),
     };
   }
@@ -254,7 +254,7 @@ export class AggressivePolicy implements Policy {
         action: act(dir, split),
         trace: trace(split ? 'split attack' : 'hunt', {
           target: hunt.aim, targetKind: 'prey', preyId: hunt.prey.id, threatIds, risk, split,
-          note: `intercept in ${hunt.tau.toFixed(1)}s, split odds ${(hunt.splitChance * 100).toFixed(0)}%`,
+          note: { key: 'intercept', values: { tau: hunt.tau, odds: hunt.splitChance } },
         }),
       };
     }
@@ -287,19 +287,19 @@ export class HybridPolicy implements Policy {
         action: act(dir, split),
         trace: trace(split ? 'hunt · split attack' : 'hunt', {
           target: hunt.aim, targetKind: 'prey', preyId: hunt.prey.id, threatIds, risk, split,
-          note: `intercept in ${hunt.tau.toFixed(1)}s, split odds ${(hunt.splitChance * 100).toFixed(0)}%`,
+          note: { key: 'intercept', values: { tau: hunt.tau, odds: hunt.splitChance } },
         }),
       };
     }
     if (p.food.length === 0) return wander(p, rng, lastActionOf(p));
     const direct = safeFood(p, list, 0.2);
     if (direct) {
-      return { action: act(direct.dir), trace: trace('forage', { target: direct.target, targetKind: 'food', threatIds, risk, note: 'straight path to best food cluster predicted safe' }) };
+      return { action: act(direct.dir), trace: trace('forage', { target: direct.target, targetKind: 'food', threatIds, risk, note: { key: 'safePath', values: {} } }) };
     }
     const { dir, danger } = scoreDirections(p, list, 1.2, lastActionOf(p));
     return {
       action: act(dir),
-      trace: trace('safe forage', { target: { x: p.cx + dir.x * 300, y: p.cy + dir.y * 300 }, targetKind: 'food', threatIds, risk, note: `food-weighted heading, predicted danger ${danger.toFixed(2)}` }),
+      trace: trace('safe forage', { target: { x: p.cx + dir.x * 300, y: p.cy + dir.y * 300 }, targetKind: 'food', threatIds, risk, note: { key: 'foodHeading', values: { danger } } }),
     };
   }
 }
