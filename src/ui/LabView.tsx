@@ -15,9 +15,11 @@ export function LabView({ models, errors }: { models: MlpModelFile[]; errors: st
         <header>
           <h1 className="text-xl font-bold text-slate-900">Reinforcement-learning lab</h1>
           <p className="mt-1 max-w-3xl text-sm text-slate-600">
-            Policies are trained in Python (Stable-Baselines3 PPO) against the <em>same TypeScript engine</em> that runs this page — the Python
-            environment drives it through a Node bridge, so the rules cannot diverge. Trained weights are exported to JSON and evaluated here by a
-            TypeScript MLP whose outputs are tested against PyTorch to 1e-5.
+            Policies are trained in Python (Stable-Baselines3 PPO / sb3-contrib MaskablePPO) against the <em>same TypeScript engine</em> that
+            runs this page — the Python environment drives it through a Node bridge, so the rules cannot diverge. Trained weights are exported to JSON
+            and run here by a TypeScript MLP whose outputs are tested against PyTorch to 1e-5; in held-out evaluation, episodes played with PyTorch and
+            with this TypeScript inference were identical. Full results, including where the networks lose to the heuristics, are in
+            docs/EXPERIMENTS.md.
           </p>
           <div className="mt-2 flex flex-wrap gap-1.5">
             <Badge>{RULES_VERSION}</Badge><Badge>{OBS_VERSION} · {OBS_SIZE} floats</Badge><Badge>{ACTION_VERSION} · {NUM_ACTIONS} actions</Badge><Badge>{REWARD_VERSION}</Badge>
@@ -93,6 +95,10 @@ function ModelCard({ model }: { model: MlpModelFile }) {
   const curve = (Array.isArray(t.curve) ? t.curve : []) as CurvePoint[];
   const stages = (Array.isArray(t.stages) ? t.stages : []) as StageInfo[];
   const evalRows = (Array.isArray(t.evaluation) ? t.evaluation : []) as Record<string, number | string>[];
+  const im = t.imitation as { samples?: number; demonstrations?: { teacher: string; scenario: string }[]; dagger?: { rounds?: number } } | undefined;
+  const imitation = im && typeof im.samples === 'number'
+    ? { samples: im.samples, rounds: im.dagger?.rounds ?? 0, teachers: [...new Set((im.demonstrations ?? []).map((d) => `${d.teacher} in ${d.scenario}`))].join(', ') }
+    : null;
   const arch = [model.obsSize, ...model.policyNet.map((l) => l.bias.length), model.numActions].join(' → ');
   const params = [...model.policyNet, model.actionNet, ...model.valueNet, model.valueHead].reduce((s, l) => s + l.bias.length * (1 + l.weight[0].length), 0);
   return (
@@ -110,6 +116,8 @@ function ModelCard({ model }: { model: MlpModelFile }) {
         <dt className="text-slate-500">Algorithm</dt><dd className="text-slate-700">{String(t.algorithm ?? '—')}</dd>
         <dt className="text-slate-500">Timesteps</dt><dd className="tabular-nums text-slate-700">{typeof t.totalTimesteps === 'number' ? t.totalTimesteps.toLocaleString() : '—'}</dd>
         <dt className="text-slate-500">Wall time</dt><dd className="text-slate-700">{typeof t.wallSeconds === 'number' ? `${(t.wallSeconds / 60).toFixed(1)} min on ${String(t.device ?? '?')}` : '—'}</dd>
+        {typeof t.initFrom === 'string' && (<><dt className="text-slate-500">Initialised from</dt><dd className="font-mono text-slate-700">{t.initFrom}</dd></>)}
+        {model.actionMasking !== undefined && (<><dt className="text-slate-500">Invalid-action masking</dt><dd className="text-slate-700">{model.actionMasking ? 'yes (split/eject masked when impossible)' : 'no'}</dd></>)}
         <dt className="text-slate-500">Obs normalisation</dt><dd className="text-slate-700">{model.obsNorm ? `VecNormalize (clip ±${model.obsNorm.clip})` : 'none'}</dd>
         <dt className="text-slate-500">Versions</dt><dd className="text-slate-700">{model.rulesVersion} · {model.obsVersion} · {model.actionVersion} · {model.rewardVersion}</dd>
       </dl>
@@ -119,6 +127,15 @@ function ModelCard({ model }: { model: MlpModelFile }) {
           <ol className="mt-1 space-y-0.5 text-slate-500">
             {stages.map((s) => <li key={s.name}><span className="font-medium text-slate-700">{s.name}</span> · {s.timesteps.toLocaleString()} steps{s.description ? ` — ${s.description}` : ''}</li>)}
           </ol>
+        </div>
+      )}
+      {imitation && (
+        <div className="mt-3 text-xs">
+          <div className="font-medium text-slate-600">Imitation initialisation</div>
+          <p className="mt-1 text-slate-500">
+            {imitation.samples.toLocaleString()} labelled states from heuristic teachers ({imitation.teachers}); behaviour cloning, then {imitation.rounds} DAgger
+            round(s) in which the network played and the teachers only labelled. The heuristics are training data only: the network acts alone.
+          </p>
         </div>
       )}
       {curve.length > 1 && (

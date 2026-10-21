@@ -45,6 +45,22 @@ export function actionMask(obs: ArrayLike<number>): boolean[] {
 /** Logit assigned to masked actions, as in sb3-contrib's MaskableCategorical. */
 export const MASKED_LOGIT = -1e8;
 
+/**
+ * Nearest act-v1 index for a continuous action (used to record heuristic demonstrations):
+ * throttle below 0.3 → stay, otherwise the closest of the 8 headings; split wins over eject.
+ */
+export function encodeAction(a: AgentAction): number {
+  const len = Math.hypot(a.dx, a.dy);
+  let move = 0;
+  if (len >= 0.3) {
+    let ang = Math.atan2(a.dy, a.dx);
+    if (ang < 0) ang += 2 * Math.PI;
+    move = 1 + (Math.round(ang / (Math.PI / 4)) % 8);
+  }
+  const special = a.split ? 1 : a.eject ? 2 : 0;
+  return move * NUM_SPECIALS + special;
+}
+
 export function describeAction(index: number): string {
   return `${MOVE_NAMES[Math.floor(index / NUM_SPECIALS)]} · ${SPECIAL_NAMES[index % NUM_SPECIALS]}`;
 }

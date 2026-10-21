@@ -41,6 +41,7 @@ const seconds = async (page: Page) => {
 };
 
 async function openAdvanced(page: Page) {
+  await expect(page.getByTestId('dock')).toBeVisible(); // the arena (and its panel state) must be mounted first
   if (!(await page.getByTestId('settings-panel').isVisible())) await page.getByTestId('toggle-right').click();
   await page.getByRole('button', { name: /advanced physics/i }).click();
 }

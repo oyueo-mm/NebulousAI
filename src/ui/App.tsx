@@ -3,7 +3,7 @@ import { RULES_VERSION } from '../engine/config';
 import type { MlpModelFile } from '../ai/rl';
 import { Arena } from './Arena';
 import { Badge, Logo, downloadText, formatTime } from './kit';
-import { fetchModels } from './models';
+import { loadModels } from './models';
 import { DEFAULT_UI, defaultArena, parseExperiment, toSetup, type ArenaSettings, type ExperimentFile, type Mode, type UiSettings } from './settings';
 import { useSimulation } from './useSimulation';
 
@@ -42,9 +42,12 @@ export function App() {
   const started = useRef<string>('');
 
   useEffect(() => {
-    fetchModels(import.meta.env.BASE_URL).then(({ files, errors, defaultId }) => {
+    let first = true;
+    void loadModels(import.meta.env.BASE_URL, ({ files, errors, defaultId }) => {
       setModels(files);
       setModelErrors(errors);
+      if (!first) return; // later models only extend the choice; they never reset the running match
+      first = false;
       const hasPpo = files.some((f) => f.trained);
       const preferred = files.find((f) => f.id === defaultId);
       const fresh = (m: 'play' | 'watch') => withAvailableModels({ ...defaultArena(m, hasPpo), ppoModel: preferred?.id ?? 'ppo-v1' }, files);
@@ -75,7 +78,7 @@ export function App() {
     } else {
       sim.api.setRunning(false);
     }
-  }, [mode, models]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [mode, models !== null]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const switchMode = (m: Mode) => {
     window.location.hash = m;

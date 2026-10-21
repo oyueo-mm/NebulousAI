@@ -39,6 +39,9 @@ class Bridge:
         )
         self.obs_size = 0
         self.num_actions = 0
+        #: act-v1 index each env actually executed in the last step (differs from the request when a
+        #: built-in learnerPolicy drives the learner — used to record demonstrations).
+        self.last_taken: list[int] = []
         self.versions: dict[str, Any] = {}
 
     # ------------------------------------------------------------- framing
@@ -100,6 +103,7 @@ class Bridge:
         assert arr is not None
         rows = arr.reshape(-1, self.obs_size)
         n = len(header["rewards"])
+        self.last_taken = header.get("taken", [])
         return (
             rows[:n],
             np.asarray(header["rewards"], dtype=np.float32),

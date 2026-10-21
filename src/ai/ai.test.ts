@@ -5,7 +5,7 @@ import { AggressivePolicy, GreedyPolicy, HybridPolicy, RandomPolicy, SurvivalPol
 import { perceive } from './perception';
 import {
   ACTION_VERSION, MODEL_FORMAT, NUM_ACTIONS, OBS_LABELS, OBS_SIZE, OBS_VERSION, MlpPolicyModel, type MlpModelFile, actionMask,
-  computeReward, decodeAction, encodeObservation, sampleCategorical, softmax,
+  computeReward, decodeAction, encodeAction, encodeObservation, sampleCategorical, softmax,
 } from './rl';
 
 function arena(n: number): World {
@@ -114,6 +114,14 @@ describe('act-v1 action encoding', () => {
     expect(() => decodeAction(27)).toThrow();
     expect(() => decodeAction(-1)).toThrow();
     expect(() => decodeAction(1.5)).toThrow();
+  });
+
+  it('encodeAction quantises continuous actions and inverts decodeAction', () => {
+    for (let i = 0; i < NUM_ACTIONS; i++) expect(encodeAction(decodeAction(i))).toBe(i);
+    expect(encodeAction({ dx: 0.1, dy: 0.1, split: false, eject: false })).toBe(0);
+    expect(encodeAction({ dx: 1, dy: 0.3, split: true, eject: true })).toBe(3 + 1);
+    expect(encodeAction({ dx: -0.2, dy: -0.98, split: false, eject: true })).toBe(7 * 3 + 2);
+    expect(encodeAction({ dx: 0.95, dy: -0.31, split: false, eject: false })).toBe(3);
   });
 });
 

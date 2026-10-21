@@ -1,6 +1,7 @@
 /**
  * Headless tournament runner.
  *   node dist-node/tournament.mjs --preset heuristics --seeds 20 --out docs/results
+ *   node dist-node/tournament.mjs --preset ppo-mixed --model ppo-v3 --seeds 20 --out public/results
  *   node dist-node/tournament.mjs --spec my-spec.json
  */
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
@@ -28,6 +29,13 @@ if (specPath) {
   spec = make(Array.from({ length: seeds }, (_, i) => seedBase + i));
 }
 if (arg('seconds')) spec.maxSeconds = Number(arg('seconds'));
+const modelArg = arg('model');
+if (modelArg) {
+  // Replace the trained model in PPO presets (the untrained baseline keeps its id).
+  spec.lineup = spec.lineup.map((p) => (p.kind === 'ppo' && p.modelId !== 'ppo-untrained' ? { ...p, modelId: modelArg } : p));
+  spec.name = `${spec.name}.${modelArg}`;
+}
+for (const p of spec.lineup) if (p.kind === 'ppo' && !models.has(p.modelId ?? '')) throw new Error(`model ${p.modelId} not found in --models directory`);
 if (arg('rotations')) spec.rotations = Number(arg('rotations'));
 
 const report = runTournament(spec, models, (done, total) => {

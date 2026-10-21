@@ -32,7 +32,8 @@ describe('PyTorch ↔ TypeScript inference equivalence', () => {
           maxProb = Math.max(maxProb, Math.abs(out.probs[a] - fx.probs[i][a]));
         }
         maxValue = Math.max(maxValue, Math.abs(out.value - fx.values[i]));
-        if (argmax(out.logits) === fx.argmax[i]) argmaxAgree++;
+        // The action actually chosen comes from the (masked, if applicable) distribution.
+        if (argmax(out.probs) === fx.argmax[i]) argmaxAgree++;
       });
       expect(maxLogit).toBeLessThan(1e-5);
       expect(maxProb).toBeLessThan(1e-6);

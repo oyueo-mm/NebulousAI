@@ -1,0 +1,211 @@
+{
+  "id": "ppo-v3",
+  "_comment": "Fine-tunes ppo-v2 (after its A-E curriculum) on the full game: longer mixed + self-play, lower entropy and learning rate. Same rules, observation, actions and reward.",
+  "algorithm": "maskable_ppo",
+  "init_from": "rl/checkpoints/ppo-v2/final.zip",
+  "seed": 1000000,
+  "num_envs": 32,
+  "processes": 4,
+  "torch_threads": 4,
+  "decision_interval": 2,
+  "reward": {},
+  "normalize": {
+    "obs": true,
+    "reward": true,
+    "clip_obs": 10.0
+  },
+  "ppo": {
+    "n_steps": 256,
+    "batch_size": 2048,
+    "n_epochs": 5,
+    "learning_rate": 0.0002,
+    "gamma": 0.995,
+    "gae_lambda": 0.95,
+    "clip_range": 0.2,
+    "ent_coef": 0.005,
+    "vf_coef": 0.5,
+    "max_grad_norm": 0.5,
+    "net_arch": [
+      128,
+      128
+    ],
+    "activation": "tanh"
+  },
+  "stages": [
+    {
+      "name": "F-mixed-long",
+      "description": "full game, long: two of every heuristic (4), hunt (1), evade (1)",
+      "timesteps": 12000000,
+      "scenarios": [
+        {
+          "name": "mixed",
+          "weight": 4,
+          "maxSeconds": 150,
+          "config": {
+            "respawn": true
+          },
+          "opponents": [
+            {
+              "kind": "random",
+              "count": 2
+            },
+            {
+              "kind": "greedy",
+              "count": 2
+            },
+            {
+              "kind": "survival",
+              "count": 2
+            },
+            {
+              "kind": "aggressive",
+              "count": 2
+            },
+            {
+              "kind": "hybrid",
+              "count": 2
+            }
+          ]
+        },
+        {
+          "name": "hunt",
+          "weight": 1,
+          "maxSeconds": 90,
+          "learnerStartMass": [
+            70,
+            140
+          ],
+          "config": {
+            "respawn": true
+          },
+          "opponents": [
+            {
+              "kind": "random",
+              "count": 4,
+              "startMass": [
+                12,
+                30
+              ]
+            },
+            {
+              "kind": "survival",
+              "count": 3,
+              "startMass": [
+                15,
+                35
+              ]
+            },
+            {
+              "kind": "greedy",
+              "count": 2,
+              "startMass": [
+                40,
+                90
+              ]
+            }
+          ]
+        },
+        {
+          "name": "evade",
+          "weight": 1,
+          "maxSeconds": 90,
+          "learnerStartMass": [
+            20,
+            45
+          ],
+          "config": {
+            "respawn": true,
+            "thornCount": 6
+          },
+          "opponents": [
+            {
+              "kind": "greedy",
+              "count": 3,
+              "startMass": [
+                110,
+                260
+              ]
+            },
+            {
+              "kind": "aggressive",
+              "count": 2,
+              "startMass": [
+                110,
+                260
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "G-selfplay-long",
+      "description": "self-play against frozen snapshots plus heuristics (2), mixed (2)",
+      "timesteps": 4000000,
+      "selfplay_refresh": 400000,
+      "scenarios": [
+        {
+          "name": "selfplay",
+          "weight": 2,
+          "maxSeconds": 150,
+          "config": {
+            "respawn": true
+          },
+          "opponents": [
+            {
+              "kind": "ppo",
+              "count": 3,
+              "modelId": "selfplay-snapshot"
+            },
+            {
+              "kind": "greedy",
+              "count": 2
+            },
+            {
+              "kind": "survival",
+              "count": 1
+            },
+            {
+              "kind": "aggressive",
+              "count": 2
+            },
+            {
+              "kind": "hybrid",
+              "count": 2
+            }
+          ]
+        },
+        {
+          "name": "mixed",
+          "weight": 2,
+          "maxSeconds": 150,
+          "config": {
+            "respawn": true
+          },
+          "opponents": [
+            {
+              "kind": "random",
+              "count": 2
+            },
+            {
+              "kind": "greedy",
+              "count": 2
+            },
+            {
+              "kind": "survival",
+              "count": 2
+            },
+            {
+              "kind": "aggressive",
+              "count": 2
+            },
+            {
+              "kind": "hybrid",
+              "count": 2
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

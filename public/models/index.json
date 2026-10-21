@@ -1,4 +1,7 @@
 [
+  { "id": "ppo-v4", "file": "ppo-v4.json", "label": "PPO v4 (BC+DAgger init)", "trained": true, "default": true },
+  { "id": "ppo-v3", "file": "ppo-v3.json", "label": "PPO v3", "trained": true },
+  { "id": "ppo-v2", "file": "ppo-v2.json", "label": "PPO v2 (masked)", "trained": true },
   { "id": "ppo-v1", "file": "ppo-v1.json", "label": "PPO v1", "trained": true },
   { "id": "ppo-untrained", "file": "ppo-untrained.json", "label": "PPO (untrained)", "trained": false }
 ]

@@ -83,11 +83,12 @@ function handle(req: Request): void {
       if (!Array.isArray(actions) || actions.length !== envs.length) throw new Error('actions length must equal numEnvs');
       const rows: Float32Array[] = [];
       const terminal: Float32Array[] = [];
-      const rewards: number[] = [], dones: boolean[] = [], truncated: boolean[] = [];
+      const rewards: number[] = [], dones: boolean[] = [], truncated: boolean[] = [], taken: number[] = [];
       const infos: (EpisodeInfo & { terminal_index: number } | null)[] = [];
       envs.forEach((e, i) => {
         const r = e.step(actions[i]);
         rewards.push(r.reward);
+        taken.push(r.taken);
         dones.push(r.terminated || r.truncated);
         truncated.push(r.truncated);
         if (r.info) {
@@ -99,7 +100,7 @@ function handle(req: Request): void {
           rows.push(new Float32Array(r.obs));
         }
       });
-      write({ ok: true, rewards, dones, truncated, infos, terminals: terminal.length }, pack([...rows, ...terminal]));
+      write({ ok: true, rewards, dones, truncated, infos, taken, terminals: terminal.length }, pack([...rows, ...terminal]));
       return;
     }
     case 'snapshot': {

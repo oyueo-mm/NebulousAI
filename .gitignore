@@ -13,3 +13,4 @@ rl/checkpoints/
 !rl/models/*.zip
 .pytest_cache/
 rl/*.log
+rl/candidates/

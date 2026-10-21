@@ -89,6 +89,10 @@ class NebulousVecEnv(VecEnv):
             b.step_send(self._actions[start:start + n])
             start += n
 
+    @property
+    def last_taken(self) -> np.ndarray:
+        return np.concatenate([np.asarray(b.last_taken, dtype=np.int64) for b in self.bridges])
+
     def step_wait(self):
         parts = [b.step_recv() for b in self.bridges]
         obs = np.concatenate([p[0] for p in parts])

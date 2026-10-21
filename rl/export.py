@@ -162,6 +162,7 @@ def main() -> None:
     ap.add_argument("--out", required=True)
     ap.add_argument("--meta", help="training metadata JSON to embed (curve, stages, evaluation)")
     ap.add_argument("--fixture", help="also write a PyTorch-vs-TypeScript equivalence fixture here")
+    ap.add_argument("--imitation-meta", help="bc_meta.json written by rl.imitate, embedded as training.imitation")
     ap.add_argument("--evaluation", help="rl.evaluate report to summarise into training.evaluation (this model's rows + heuristics)")
     ap.add_argument("--fixture-size", type=int, default=64)
     args = ap.parse_args()
@@ -199,6 +200,9 @@ def main() -> None:
         training = json.loads(Path(args.meta).read_text(encoding="utf-8"))
     if not trained:
         training = {"algorithm": "random initialisation, not trained", "totalTimesteps": 0, "seed": cfg.get("seed")}
+    if args.imitation_meta and Path(args.imitation_meta).exists():
+        training = dict(training or {})
+        training["imitation"] = json.loads(Path(args.imitation_meta).read_text(encoding="utf-8"))
     if args.evaluation and Path(args.evaluation).exists():
         training = dict(training or {})
         training["evaluation"] = evaluation_rows(json.loads(Path(args.evaluation).read_text(encoding="utf-8")), args.id)

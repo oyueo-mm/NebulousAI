@@ -160,10 +160,18 @@ def main() -> None:
     except ImportError:
         pass
 
+    init_from = cfg.get("init_from")
+    if last_ckpt is None and init_from:
+        # Fine-tune: start from another run's weights and normalisation statistics.
+        last_ckpt = Path(init_from)
+        meta.setdefault("initFrom", init_from)
     if last_ckpt is not None and last_ckpt.exists():
         vecnorm = VecNormalize.load(str(last_ckpt.with_name(last_ckpt.stem + "_vecnormalize.pkl")), venv)
-        model = algorithm_class(cfg).load(str(last_ckpt), env=vecnorm, device=device)
-        print(f"resumed from {last_ckpt} at {model.num_timesteps:,} timesteps")
+        overrides = {k: cfg["ppo"][k] for k in ("learning_rate", "ent_coef", "clip_range") if k in cfg["ppo"]}
+        model = algorithm_class(cfg).load(str(last_ckpt), env=vecnorm, device=device, custom_objects=overrides)
+        if tensorboard:
+            model.tensorboard_log = tensorboard
+        print(f"loaded {last_ckpt} at {model.num_timesteps:,} timesteps (overrides: {overrides})")
     else:
         vecnorm = VecNormalize(venv, norm_obs=norm.get("obs", True), norm_reward=norm.get("reward", True), clip_obs=norm.get("clip_obs", 10.0), gamma=cfg["ppo"]["gamma"])
         model = build_model(cfg, vecnorm, device, tensorboard)

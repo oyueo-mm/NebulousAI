@@ -4,7 +4,7 @@ import { Rng, deriveSeed } from '../../src/engine/rng';
 import { perceive } from '../../src/ai/perception';
 import { createPolicy } from '../../src/ai/registry';
 import {
-  ACTION_VERSION, NUM_ACTIONS, OBS_SIZE, OBS_VERSION, REWARD_VERSION, decodeAction, encodeObservation, type MlpPolicyModel, type RewardWeights,
+  ACTION_VERSION, NUM_ACTIONS, OBS_SIZE, OBS_VERSION, REWARD_VERSION, decodeAction, encodeAction, encodeObservation, type MlpPolicyModel, type RewardWeights,
 } from '../../src/ai/rl';
 import type { Policy, PolicyKind } from '../../src/ai/types';
 import { Match, type ParticipantSpec } from '../../src/sim/match';
@@ -38,6 +38,16 @@ export interface EnvConfig {
   learnerPolicy?: PolicyKind;
   learnerModelId?: string;
   learnerDeterministic?: boolean;
+  /**
+   * With learnerPolicy: execute the nearest act-v1 action instead of the heuristic's continuous
+   * one, so recorded demonstrations are exactly reproducible by a discrete policy.
+   */
+  quantizeLearner?: boolean;
+  /**
+   * DAgger labelling: execute the Python action, but report as `taken` what this heuristic would
+   * have done (quantised) in the same state.
+   */
+  labelPolicy?: PolicyKind;
 }
 
 export const VERSIONS = { rules: RULES_VERSION, obs: OBS_VERSION, action: ACTION_VERSION, reward: REWARD_VERSION, obsSize: OBS_SIZE, numActions: NUM_ACTIONS };
@@ -69,6 +79,7 @@ export class LearnerEnv {
   seed = 0;
   steps = 0;
   private learnerPolicy: Policy | null = null;
+  private labeller: Policy | null = null;
   private readonly policyRng = new Rng(1);
   private readonly obs = new Float32Array(OBS_SIZE);
 
@@ -99,6 +110,7 @@ export class LearnerEnv {
     this.learnerPolicy = this.cfg.learnerPolicy
       ? createPolicy({ kind: this.cfg.learnerPolicy, modelId: this.cfg.learnerModelId, deterministic: this.cfg.learnerDeterministic }, this.models)
       : null;
+    this.labeller = this.cfg.labelPolicy ? createPolicy({ kind: this.cfg.labelPolicy }, this.models) : null;
     this.policyRng.setState(deriveSeed(this.seed, 4242));
     this.steps = 0;
     return this.observe();
@@ -111,12 +123,18 @@ export class LearnerEnv {
   }
 
   /** One decision step (decisionInterval ticks). */
-  step(action: number): { obs: Float32Array; reward: number; terminated: boolean; truncated: boolean; info: EpisodeInfo | null } {
+  step(action: number): { obs: Float32Array; reward: number; terminated: boolean; truncated: boolean; info: EpisodeInfo | null; taken: number } {
     const m = this.match;
     let a = decodeAction(action);
+    let taken = action;
     if (this.learnerPolicy) {
       const p = perceive(m.world, 0);
       if (p) a = this.learnerPolicy.decide(p, this.policyRng).action;
+      taken = encodeAction(a);
+      if (this.cfg.quantizeLearner) a = decodeAction(taken);
+    } else if (this.labeller) {
+      const p = perceive(m.world, 0);
+      if (p) taken = encodeAction(this.labeller.decide(p, this.policyRng).action);
     }
     m.setExternalAction(0, a);
     m.advanceDecision();
@@ -126,7 +144,7 @@ export class LearnerEnv {
     const terminated = !learner.alive;
     const truncated = !terminated && m.isOver();
     const obs = this.observe();
-    return { obs, reward, terminated, truncated, info: terminated || truncated ? this.episodeInfo() : null };
+    return { obs, reward, terminated, truncated, info: terminated || truncated ? this.episodeInfo() : null, taken };
   }
 
   episodeInfo(): EpisodeInfo {
