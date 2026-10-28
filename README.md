@@ -7,7 +7,7 @@ reinforcement-learning agents survive and compete in a multi-agent arena.*
 
 **Live demo: https://oyueo-mm.github.io/NebulousAI/**
 
-The entry page is now a quiet, white home screen with an independent cell simulation and quick links
+The entry page is now a quiet, white home screen with an independent match using the actual game engine and heuristic AIs and quick links
 to Play and Watch. Use the collapsible left sidebar to switch pages; phones and tablets use a menu
 drawer with keyboard focus management. The Cherry × Pistachio palette is shared across the app.
 Routes are `#/home`, `#/play`, `#/watch`, `#/tournament`, and `#/lab`; original `#play`-style links
@@ -24,7 +24,7 @@ uses none of their code or assets, and never connects to a game server.
 
 | Mode | |
 |---|---|
-| **직접 플레이 (Play)** | Steer a cell with the mouse (or WASD / arrow keys, or an on-screen joystick on touch screens), eat food, swallow smaller cells, split (Space) to attack or escape, eject mass (E). Fifteen AI opponents, including the trained network. A first-visit guide and a **조작법** (controls) sheet explain everything; the HUD shows whether split and eject are available and, when you try anyway, says why not. |
+| **직접 플레이 (Play)** | Steer a cell with WASD / arrow keys (or an on-screen joystick on touch screens), eat food, swallow smaller cells, split (Space) to attack or escape, eject mass (E). Fifteen AI opponents, including the trained network. A first-visit guide and a **조작법** (controls) sheet explain everything; the HUD shows whether split and eject are available and, when you try anyway, says why not. |
 | **AI 관전 (Watch AI)** | Choose how many of each AI play, follow any agent, pause / step one tick, drag a **log-scale speed slider (0.25× – 50×)** or use **최대 속도** (Max), and open **AI 행동 분석** (the inspector): what the agent sees, its mode, target, threats and risk (heuristics) — or its observation vector, action probabilities and value estimate (neural). Optional heuristic risk heatmap. |
 | **Tournament** | Headless matches in a background worker over many seeds with spawn-position rotation; win rate with Wilson intervals, survival and mass with 95 % CIs; JSON / CSV export. Reference results from the CLI are shown alongside. |
 | **RL Lab** | Every shipped network (trained and untrained) with its training curve, curriculum, imitation initialisation and held-out evaluation, plus the exact observation, action and reward definitions. |
@@ -33,7 +33,7 @@ Everything runs in the browser; there is no backend. The interface is in Korean;
 [`src/i18n/ko.ts`](src/i18n/ko.ts) (one typed dictionary, so another language is a second file of the same shape).
 Model IDs, JSON keys and saved-file schemas are technical identifiers and stay untranslated.
 
-**Controls**: PC: mouse to steer, WASD / arrow keys, Space split, E eject, P / Esc pause, R restart. Phone: joystick
+**Controls**: PC: WASD / arrow keys to move, mouse wheel to zoom, Space split, E eject, P / Esc pause, R restart. Phone: joystick
 (bottom left), 분열 / 방출 buttons (bottom right), pause in the dock; the speed chip opens a large slider sheet.
 **Speed** changes only how many fixed simulation ticks run per real second; the physics, AI and results are identical
 at every speed (tested). When a device cannot reach the target, the achieved speed is shown instead of the target.
@@ -60,7 +60,7 @@ small cells so that mass decay never applies. Details, caveats and all tables:
 
 **Implemented and tested**: the deterministic engine (movement, food, predation with order-independent
 contest resolution, split, merge, eject, thorns, decay, respawn, mass ledger); play and watch modes with
-mouse, keyboard and touch controls; five heuristic AIs; the decision inspector and heuristic risk
+keyboard and touch movement, mouse camera controls; five heuristic AIs; the decision inspector and heuristic risk
 heatmap; save / load of complete game states; browser and CLI tournaments; Gymnasium, Stable-Baselines3
 and PettingZoo environments driven by the same engine; PPO and MaskablePPO training with curricula and
 self-play; behaviour cloning + DAgger initialisation; held-out evaluation; export to the browser with a

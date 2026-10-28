@@ -116,6 +116,7 @@ export function Arena(props: Props) {
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.target instanceof Element && e.target.closest('#main-sidebar, .mobile-menu')) return;
+      if ((e.code === 'Space' || e.code === 'Enter') && e.target instanceof Element && e.target.closest('button, a')) return;
       if (e.target instanceof HTMLInputElement || e.target instanceof HTMLSelectElement || e.target instanceof HTMLTextAreaElement) return;
       if (dialogOpen) {
         // Escape closes only the top-most dialog (help opened from the guide returns to the guide).
@@ -260,7 +261,6 @@ export function Arena(props: Props) {
             <IconButton label={t.dock.fit} onClick={fit} testId="fit" className="hidden sm:flex">⤢</IconButton>
             <div className="mx-0.5 hidden h-5 w-px bg-slate-200 sm:block" />
             <IconButton label={t.dock.analytics} onClick={() => onUi({ ...ui, bottomOpen: !ui.bottomOpen })} active={ui.bottomOpen} testId="toggle-bottom" className="hidden sm:flex">▤</IconButton>
-            <IconButton label={t.dock.settings} onClick={() => onUi({ ...ui, rightOpen: !ui.rightOpen })} active={ui.rightOpen} testId="toggle-right">⚙</IconButton>
           </div>
 
           {!gameOver && (
@@ -280,7 +280,7 @@ export function Arena(props: Props) {
         <div className="absolute inset-0 z-20 bg-slate-900/20 lg:hidden" onClick={() => onUi({ ...ui, rightOpen: false })} data-testid="drawer-backdrop" />
       )}
       {ui.rightOpen && (
-        <aside className="absolute inset-y-0 right-0 z-20 w-[min(20rem,88vw)] border-l border-slate-200 bg-white shadow-xl lg:static lg:z-auto lg:shadow-none">
+        <aside id="arena-settings" className="absolute inset-y-0 right-0 z-20 w-[min(20rem,88vw)] border-l border-slate-200 bg-white shadow-xl lg:static lg:z-auto lg:shadow-none">
           <SettingsPanel onClose={() => onUi({ ...ui, rightOpen: false })}
             mode={mode} arena={props.arena} onArena={props.onArena} ui={ui} onUi={onUi} models={props.models} dirty={dirty}
             onApply={props.onRestart} onSave={props.onSave} onLoad={props.onLoad} quick={quickActions}

@@ -53,7 +53,7 @@ const cellStroke = (hue: number) => `hsl(${hue} 60% 42%)`;
 
 export function drawFrame(
   ctx: CanvasRenderingContext2D, vp: Viewport, cam: Camera, frame: Frame, cells: Float32Array,
-  opts: { overlays: Overlays; inspect: InspectDetail | null; selectedId: number | null; humanId: number | null; thornMass: number },
+  opts: { overlays: Overlays; inspect: InspectDetail | null; selectedId: number | null; humanId: number | null; thornMass: number; arena?: boolean; palette?: readonly string[] },
 ): void {
   const { width, height, dpr } = vp;
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
@@ -69,18 +69,20 @@ export function drawFrame(
   const W = frame.world.width, H = frame.world.height;
 
   // Arena and grid
-  ctx.fillStyle = '#ffffff';
-  ctx.fillRect(0, 0, W, H);
-  const grid = cam.zoom > 0.25 ? 100 : 500;
-  ctx.strokeStyle = '#f0f1f3';
-  ctx.lineWidth = 1 / cam.zoom;
-  ctx.beginPath();
-  for (let x = Math.max(0, Math.floor(left / grid) * grid); x <= Math.min(W, right); x += grid) { ctx.moveTo(x, Math.max(0, top)); ctx.lineTo(x, Math.min(H, bottom)); }
-  for (let y = Math.max(0, Math.floor(top / grid) * grid); y <= Math.min(H, bottom); y += grid) { ctx.moveTo(Math.max(0, left), y); ctx.lineTo(Math.min(W, right), y); }
-  ctx.stroke();
-  ctx.strokeStyle = '#E6E8EB';
-  ctx.lineWidth = 3 / cam.zoom;
-  ctx.strokeRect(0, 0, W, H);
+  if (opts.arena !== false) {
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, W, H);
+    const grid = cam.zoom > 0.25 ? 100 : 500;
+    ctx.strokeStyle = '#f0f1f3';
+    ctx.lineWidth = 1 / cam.zoom;
+    ctx.beginPath();
+    for (let x = Math.max(0, Math.floor(left / grid) * grid); x <= Math.min(W, right); x += grid) { ctx.moveTo(x, Math.max(0, top)); ctx.lineTo(x, Math.min(H, bottom)); }
+    for (let y = Math.max(0, Math.floor(top / grid) * grid); y <= Math.min(H, bottom); y += grid) { ctx.moveTo(Math.max(0, left), y); ctx.lineTo(Math.min(W, right), y); }
+    ctx.stroke();
+    ctx.strokeStyle = '#E6E8EB';
+    ctx.lineWidth = 3 / cam.zoom;
+    ctx.strokeRect(0, 0, W, H);
+  }
 
   // Heuristic risk heatmap (drawn under everything else)
   const ins = opts.inspect;
@@ -100,15 +102,15 @@ export function drawFrame(
   for (let i = 0; i < f.length; i += FOOD_STRIDE) {
     const x = f[i], y = f[i + 1];
     if (x < left - pad || x > right + pad || y < top - pad || y > bottom + pad) continue;
-    ctx.fillStyle = `hsl(${f[i + 2]} 75% 66%)`;
+    ctx.fillStyle = opts.palette ? opts.palette[Math.floor(f[i + 2]) % opts.palette.length] : `hsl(${f[i + 2]} 75% 66%)`;
     ctx.beginPath();
     ctx.arc(x, y, 4.5, 0, Math.PI * 2);
     ctx.fill();
   }
   const pel = frame.pellets;
   for (let i = 0; i < pel.length; i += PELLET_STRIDE) {
-    ctx.fillStyle = cellFill(pel[i + 3]);
-    ctx.strokeStyle = cellStroke(pel[i + 3]);
+    ctx.fillStyle = opts.palette ? opts.palette[Math.floor(pel[i + 3]) % opts.palette.length] : cellFill(pel[i + 3]);
+    ctx.strokeStyle = opts.palette ? ctx.fillStyle : cellStroke(pel[i + 3]);
     ctx.lineWidth = 1.5;
     ctx.beginPath();
     ctx.arc(pel[i], pel[i + 1], pel[i + 2], 0, Math.PI * 2);
@@ -135,9 +137,9 @@ export function drawFrame(
     const owner = cells[i + 1];
     const a = agents.get(owner);
     const hue = a?.hue ?? 0;
-    ctx.fillStyle = cellFill(hue);
-    ctx.strokeStyle = cellStroke(hue);
-    ctx.lineWidth = Math.max(2, r * 0.07);
+    ctx.fillStyle = opts.palette ? opts.palette[owner % opts.palette.length] : cellFill(hue);
+    ctx.strokeStyle = opts.palette ? opts.palette[owner % opts.palette.length] : cellStroke(hue);
+    ctx.lineWidth = opts.palette ? 1 / cam.zoom : Math.max(2, r * 0.07);
     ctx.beginPath();
     ctx.arc(x, y, r, 0, Math.PI * 2);
     ctx.fill();

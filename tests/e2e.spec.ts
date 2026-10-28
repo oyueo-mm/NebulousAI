@@ -193,7 +193,7 @@ test.describe('desktop', () => {
       expect(errors).toEqual([]);
     });
 
-    test('play: WASD and arrow keys move the cell, the mouse steers it and the player grows by eating', async ({ page }, info) => {
+    test('play: WASD and arrow keys move the cell and keyboard movement collects food', async ({ page }, info) => {
       const errors = watchErrors(page);
       await page.goto('./#play');
       await measurementLineup(page);
@@ -211,13 +211,14 @@ test.describe('desktop', () => {
         expect((b[axis] - a[axis]) * sign, `${key} moves along ${axis}`).toBeGreaterThan(30);
       }
       await page.getByTestId('toggle-right').click();
-      // Mouse: the cell follows the pointer; steering in circles also collects food.
-      const box = (await page.getByTestId('game-canvas').boundingBox())!;
+      // Keyboard: move in a square and collect food without mouse steering.
       let grown = false;
+      const directions = ['KeyD', 'KeyS', 'KeyA', 'KeyW'];
       for (let i = 0; i < 40 && !grown; i++) {
-        const a = i * 0.5;
-        await page.mouse.move(box.x + box.width / 2 + Math.cos(a) * 250, box.y + box.height / 2 + Math.sin(a) * 250);
+        const key = directions[Math.floor(i / 4) % directions.length];
+        await page.keyboard.down(key);
         await page.waitForTimeout(250);
+        await page.keyboard.up(key);
         grown = Number(await page.getByTestId('hud-mass').textContent()) > 20;
       }
       expect(grown).toBe(true);
@@ -268,7 +269,7 @@ test.describe('desktop', () => {
       await page.goto('./#play');
       await page.getByTestId('controls-button').click();
       const help = page.getByTestId('controls-help');
-      for (const text of ['PC 조작', '모바일 조작', '마우스 이동', 'W A S D', '방향키', 'Space', '분열', '질량 방출', 'P / Esc', '일시정지', '다시 시작', '가상 조이스틱', '분열 버튼', '방출 버튼', '일시정지 버튼']) {
+      for (const text of ['PC 조작', '모바일 조작', '마우스 휠', 'W A S D', '방향키', 'Space', '분열', '질량 방출', 'P / Esc', '일시정지', '다시 시작', '가상 조이스틱', '분열 버튼', '방출 버튼', '일시정지 버튼']) {
         await expect(help).toContainText(text);
       }
       await page.keyboard.press('Escape');
@@ -481,7 +482,7 @@ const overlaps = (a: Box, b: Box) => a.x < b.x + b.width && b.x < a.x + a.width 
 test.describe('responsive layouts', () => {
   test.skip(({ isMobile }) => isMobile, 'runs its own viewports');
 
-  for (const [w, h] of [[375, 667], [360, 800], [390, 844], [430, 932], [768, 1024], [1280, 720], [1440, 900], [1920, 1080]]) {
+  for (const [w, h] of [[375, 667], [360, 800], [390, 844], [430, 932], [768, 1024], [1024, 768], [1280, 720], [1440, 900], [1920, 1080]]) {
     test(`${w}×${h}: no horizontal overflow, controls do not overlap, canvas fully visible`, async ({ browser }) => {
       const { ctx, page, touch } = await openAt(browser, w, h);
       const errors = watchErrors(page);

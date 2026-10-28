@@ -127,6 +127,12 @@ export function App() {
             {live && <span className="tabular-nums" data-testid="match-time">{formatTime(sim.ui.time)}</span>}
             {live && <span className="tabular-nums" data-testid="alive-count">{t.app.alive(aliveCount, sim.ui.agents.length)}</span>}
             {status}
+            {live && <button type="button" className="header-settings" data-testid="toggle-right" title={ui.rightOpen ? t.settings.close : t.dock.settings}
+              aria-label={ui.rightOpen ? t.settings.close : t.dock.settings} aria-expanded={ui.rightOpen} aria-controls="arena-settings"
+              onClick={() => setUi((current) => ({ ...current, rightOpen: !current.rightOpen }))}>
+              <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2" /><path d="M15 4v16" /></svg>
+              <span>{t.dock.settings}</span>
+            </button>}
           </div>
         </header>
 

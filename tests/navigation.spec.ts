@@ -96,6 +96,10 @@ test('home canvas respects reduced motion and resumes when motion is enabled', a
   await page.goto('./');
   const canvas = page.getByTestId('home-animation');
   await expect.poll(() => canvas.evaluate((c: HTMLCanvasElement) => c.width)).toBeGreaterThan(0);
+  await expect.poll(() => canvas.evaluate((c: HTMLCanvasElement) => {
+    const pixels = c.getContext('2d')!.getImageData(0, 0, c.width, c.height).data;
+    return pixels.some((_, i) => i % 4 === 0 && Math.max(pixels[i], pixels[i + 1], pixels[i + 2]) - Math.min(pixels[i], pixels[i + 1], pixels[i + 2]) > 30);
+  })).toBe(true);
   const still = await canvas.evaluate((c: HTMLCanvasElement) => c.toDataURL());
   await page.waitForTimeout(300);
   expect(await canvas.evaluate((c: HTMLCanvasElement) => c.toDataURL())).toBe(still);
@@ -105,7 +109,7 @@ test('home canvas respects reduced motion and resumes when motion is enabled', a
 
 test.describe('home layouts', () => {
   test.skip(({ isMobile }) => isMobile, 'uses independent viewport sizes');
-  for (const [width, height] of [[1920, 1080], [1440, 900], [1280, 720], [768, 1024], [390, 844], [375, 667]]) {
+  for (const [width, height] of [[1920, 1080], [1440, 900], [1280, 720], [1024, 768], [768, 1024], [390, 844], [375, 667]]) {
     test(`${width}×${height}: home content fits and canvas is painted`, async ({ page }, info) => {
       await page.setViewportSize({ width, height });
       await page.goto('./');

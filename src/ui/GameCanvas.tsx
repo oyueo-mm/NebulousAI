@@ -3,6 +3,7 @@ import { CELL_STRIDE } from '../worker/protocol';
 import { type Camera, type Overlays, type Viewport, autoZoom, drawFrame, interpolateCells, screenToWorld } from '../render/renderer';
 import type { FrameStore } from './useSimulation';
 import type { AgentAction } from '../engine/types';
+import { movement, MOVEMENT_KEYS } from './movement';
 
 export interface CanvasHandle {
   fitWorld(): void;
@@ -25,10 +26,6 @@ interface Props {
   handle?: Ref<CanvasHandle>;
 }
 
-const KEY_DIRS: Record<string, [number, number]> = {
-  ArrowUp: [0, -1], KeyW: [0, -1], ArrowDown: [0, 1], KeyS: [0, 1], ArrowLeft: [-1, 0], KeyA: [-1, 0], ArrowRight: [1, 0], KeyD: [1, 0],
-};
-
 export function GameCanvas(props: Props) {
   const wrapRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -36,7 +33,6 @@ export function GameCanvas(props: Props) {
   const vp = useRef<Viewport>({ width: 1, height: 1, dpr: 1 });
   const userZoom = useRef(1);
   const free = useRef<{ dragging: boolean; lastX: number; lastY: number; moved: number }>({ dragging: false, lastX: 0, lastY: 0, moved: 0 });
-  const mouse = useRef<{ x: number; y: number; inside: boolean; lastMove: number }>({ x: 0, y: 0, inside: false, lastMove: 0 });
   const keys = useRef(new Set<string>());
   const lastSent = useRef({ at: 0, dx: 0, dy: 0 });
   const drawState = useRef({ version: -1, camKey: '', force: true });
@@ -122,33 +118,13 @@ export function GameCanvas(props: Props) {
     drawFrame(ctx, v, c, frame, cells, {
       overlays: p.overlays, inspect: frame.inspect, selectedId: p.selectedId, humanId: p.humanId, thornMass: p.thornMass,
     });
-    if (p.humanId !== null) sendInput(now, cells);
+    if (p.humanId !== null) sendInput(now);
   }
 
-  function sendInput(now: number, cells: Float32Array): void {
+  function sendInput(now: number): void {
     const p = latest.current;
     if (p.humanId === null) return;
-    let dx = 0, dy = 0;
-    const joy = p.joystick.current;
-    let keyX = 0, keyY = 0;
-    for (const k of keys.current) { const d = KEY_DIRS[k]; if (d) { keyX += d[0]; keyY += d[1]; } }
-    if (joy.active) {
-      dx = joy.x; dy = joy.y;
-    } else if (keyX !== 0 || keyY !== 0) {
-      const l = Math.hypot(keyX, keyY);
-      dx = keyX / l; dy = keyY / l;
-    } else if (mouse.current.inside) {
-      const centre = agentCentre(cells, p.humanId);
-      if (centre) {
-        const v = vp.current;
-        const w = screenToWorld(cam.current, v, mouse.current.x, mouse.current.y);
-        const ddx = w.x - centre.x, ddy = w.y - centre.y;
-        const distPx = Math.hypot(ddx, ddy) * cam.current.zoom;
-        const full = Math.min(v.width, v.height) * 0.12;
-        const l = Math.hypot(ddx, ddy);
-        if (l > 1e-6) { const t = Math.min(1, distPx / full); dx = (ddx / l) * t; dy = (ddy / l) * t; }
-      }
-    }
+    const { dx, dy } = movement(keys.current, p.joystick.current);
     const last = lastSent.current;
     if (now - last.at > 33 || Math.abs(dx - last.dx) + Math.abs(dy - last.dy) > 0.08) {
       lastSent.current = { at: now, dx, dy };
@@ -176,14 +152,24 @@ export function GameCanvas(props: Props) {
     const down = (e: KeyboardEvent) => {
       if (e.target instanceof Element && e.target.closest('#main-sidebar, .mobile-menu')) return;
       if (e.target instanceof HTMLInputElement || e.target instanceof HTMLSelectElement || e.target instanceof HTMLTextAreaElement) return;
-      if (KEY_DIRS[e.code] && latest.current.humanId !== null) { keys.current.add(e.code); e.preventDefault(); }
+      if (MOVEMENT_KEYS.has(e.code) && latest.current.humanId !== null) { keys.current.add(e.code); e.preventDefault(); sendInput(performance.now()); }
     };
-    const up = (e: KeyboardEvent) => keys.current.delete(e.code);
-    const blur = () => keys.current.clear();
+    const up = (e: KeyboardEvent) => { if (MOVEMENT_KEYS.has(e.code)) { keys.current.delete(e.code); sendInput(performance.now()); } };
+    const blur = () => {
+      keys.current.clear();
+      latest.current.joystick.current = { x: 0, y: 0, active: false };
+      sendInput(performance.now());
+    };
+    const visibility = () => { if (document.hidden) blur(); };
     window.addEventListener('keydown', down);
     window.addEventListener('keyup', up);
     window.addEventListener('blur', blur);
-    return () => { window.removeEventListener('keydown', down); window.removeEventListener('keyup', up); window.removeEventListener('blur', blur); };
+    document.addEventListener('visibilitychange', visibility);
+    return () => {
+      blur();
+      window.removeEventListener('keydown', down); window.removeEventListener('keyup', up); window.removeEventListener('blur', blur);
+      document.removeEventListener('visibilitychange', visibility);
+    };
   }, []);
 
   const pickAgent = (sx: number, sy: number): number | null => {
@@ -212,7 +198,6 @@ export function GameCanvas(props: Props) {
         className="block touch-none select-none"
         onPointerMove={(e) => {
           const pt = local(e);
-          mouse.current = { x: pt.x, y: pt.y, inside: true, lastMove: performance.now() };
           const fr = free.current;
           if (fr.dragging) {
             const dx = pt.x - fr.lastX, dy = pt.y - fr.lastY;
@@ -224,11 +209,9 @@ export function GameCanvas(props: Props) {
             }
           }
         }}
-        onPointerLeave={() => { mouse.current.inside = false; }}
         onPointerDown={(e) => {
           const pt = local(e);
           free.current = { dragging: true, lastX: pt.x, lastY: pt.y, moved: 0 };
-          if (e.pointerType === 'mouse') mouse.current = { x: pt.x, y: pt.y, inside: true, lastMove: performance.now() };
           (e.target as HTMLElement).setPointerCapture?.(e.pointerId);
         }}
         onPointerUp={(e) => {
