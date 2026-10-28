@@ -57,7 +57,7 @@ export function drawFrame(
 ): void {
   const { width, height, dpr } = vp;
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-  ctx.fillStyle = '#f4f6fb';
+  ctx.fillStyle = '#ffffff';
   ctx.fillRect(0, 0, width, height);
 
   ctx.save();
@@ -72,13 +72,13 @@ export function drawFrame(
   ctx.fillStyle = '#ffffff';
   ctx.fillRect(0, 0, W, H);
   const grid = cam.zoom > 0.25 ? 100 : 500;
-  ctx.strokeStyle = '#e8ecf4';
+  ctx.strokeStyle = '#f0f1f3';
   ctx.lineWidth = 1 / cam.zoom;
   ctx.beginPath();
   for (let x = Math.max(0, Math.floor(left / grid) * grid); x <= Math.min(W, right); x += grid) { ctx.moveTo(x, Math.max(0, top)); ctx.lineTo(x, Math.min(H, bottom)); }
   for (let y = Math.max(0, Math.floor(top / grid) * grid); y <= Math.min(H, bottom); y += grid) { ctx.moveTo(Math.max(0, left), y); ctx.lineTo(Math.min(W, right), y); }
   ctx.stroke();
-  ctx.strokeStyle = '#94a3b8';
+  ctx.strokeStyle = '#E6E8EB';
   ctx.lineWidth = 3 / cam.zoom;
   ctx.strokeRect(0, 0, W, H);
 

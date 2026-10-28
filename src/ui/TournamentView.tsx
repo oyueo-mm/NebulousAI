@@ -188,7 +188,7 @@ export function ReportView({ report, live }: { report: TournamentReport; live: b
                 <XAxis dataKey="label" tick={{ fontSize: 10 }} interval={0} />
                 <YAxis tick={{ fontSize: 10 }} width={36} />
                 <Tooltip contentStyle={{ fontSize: 11 }} />
-                <Bar dataKey={key} fill="#818cf8" isAnimationActive={false} radius={[3, 3, 0, 0]}>
+                <Bar dataKey={key} fill="#9CBF78" isAnimationActive={false} radius={[3, 3, 0, 0]}>
                   <ErrorBar dataKey={err} width={4} stroke="#334155" />
                 </Bar>
               </BarChart>

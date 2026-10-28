@@ -92,7 +92,7 @@ export function GameCanvas(props: Props) {
     const v = vp.current;
     if (!frame) {
       ctx.setTransform(v.dpr, 0, 0, v.dpr, 0, 0);
-      ctx.fillStyle = '#f4f6fb';
+      ctx.fillStyle = '#ffffff';
       ctx.fillRect(0, 0, v.width, v.height);
       return;
     }
@@ -174,6 +174,7 @@ export function GameCanvas(props: Props) {
   // Keyboard movement (split / eject / pause / restart are handled by the app shell).
   useEffect(() => {
     const down = (e: KeyboardEvent) => {
+      if (e.target instanceof Element && e.target.closest('#main-sidebar, .mobile-menu')) return;
       if (e.target instanceof HTMLInputElement || e.target instanceof HTMLSelectElement || e.target instanceof HTMLTextAreaElement) return;
       if (KEY_DIRS[e.code] && latest.current.humanId !== null) { keys.current.add(e.code); e.preventDefault(); }
     };

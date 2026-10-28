@@ -63,18 +63,47 @@ async function openAdvanced(page: Page) {
   await page.getByRole('button', { name: '고급 물리 설정' }).click();
 }
 
+/** Isolate input/pacing measurements from predation and PPO inference cost; AI integration is tested separately. */
+async function measurementLineup(page: Page, random = 0) {
+  await openSettings(page);
+  if (await page.getByTestId('play-pause').getAttribute('aria-label') === '일시정지 (P)') await page.getByTestId('play-pause').click();
+  for (const kind of ['random', 'greedy', 'survival', 'aggressive', 'hybrid', 'ppo']) {
+    const count = page.getByTestId(`count-${kind}`);
+    const target = kind === 'random' ? random : 0;
+    while (Number(await count.textContent()) > target) await count.locator('..').getByRole('button').first().click();
+  }
+  if (random > 0) {
+    // Measure the scheduler rather than the hardware's maximum full-arena physics throughput.
+    await setNumber(page, '최대 먹이 수', 100);
+    await setNumber(page, '가시 수', 0);
+  }
+  await page.getByTestId('apply-settings').click();
+}
+
 async function setNumber(page: Page, label: string, value: number) {
   await page.getByTestId('settings-panel').locator('label', { hasText: label }).locator('input').fill(String(value));
 }
 
 /** Downloads the current state and returns the human player's (agent 0) first cell position. */
 async function humanPosition(page: Page, path: string): Promise<{ x: number; y: number; tick: number }> {
+  // File downloads must not add uncontrolled movement / AI time to an input measurement.
+  const running = await page.getByTestId('play-pause').getAttribute('aria-label') === '일시정지 (P)';
+  if (running) {
+    await page.getByTestId('play-pause').click();
+    await expect(page.getByTestId('status-paused')).toBeVisible();
+  }
   await openSettings(page);
   if (!(await page.getByTestId('save-experiment').isVisible())) await page.getByRole('button', { name: '저장 / 불러오기' }).click();
   const [download] = await Promise.all([page.waitForEvent('download'), page.getByTestId('save-experiment').click()]);
   await download.saveAs(path);
   const exp = JSON.parse(readFileSync(path, 'utf8'));
   const cell = exp.snapshot.world.cells.find((c: { owner: number }) => c.owner === 0);
+  if (running) {
+    // The phone settings drawer covers the dock; resume via the existing keyboard shortcut.
+    await page.getByTestId('save-experiment').focus();
+    await page.keyboard.press('KeyP');
+    await expect(page.getByTestId('status-paused')).toBeHidden();
+  }
   return { x: cell.x, y: cell.y, tick: exp.snapshot.world.tick };
 }
 
@@ -144,7 +173,7 @@ test.describe('desktop', () => {
       for (const mode of ['play', 'watch', 'tournament', 'lab']) {
         await page.goto(`./#${mode}`);
         await page.waitForTimeout(mode === 'tournament' || mode === 'lab' ? 1500 : 1000);
-        await expect(page.getByTestId(`mode-${mode}`)).toHaveAttribute('aria-selected', 'true');
+        await expect(page.getByTestId(`mode-${mode}`)).toHaveAttribute('aria-current', 'page');
         await expectKorean(page);
       }
       await expect(page.getByTestId('mode-play')).toContainText('직접 플레이');
@@ -167,6 +196,7 @@ test.describe('desktop', () => {
     test('play: WASD and arrow keys move the cell, the mouse steers it and the player grows by eating', async ({ page }, info) => {
       const errors = watchErrors(page);
       await page.goto('./#play');
+      await measurementLineup(page);
       await expect(page.getByTestId('hud-mass')).toHaveText('20');
       await expectWorldVisible(page);
       // Keyboard: D moves east, W north, ArrowLeft west, ArrowDown south (mouse kept outside the canvas).
@@ -265,6 +295,7 @@ test.describe('desktop', () => {
       writeFileSync(edited, JSON.stringify(exp));
       await page.getByTestId('load-experiment').setInputFiles(edited);
       await expect(page.getByTestId('notice')).toContainText('불러왔습니다');
+      await expect(page.getByTestId('step')).toBeEnabled(); // the worker has applied the paused snapshot
       await page.getByTestId('play-pause').click();
       await expect(page.getByTestId('game-over')).toBeVisible({ timeout: 5000 });
       await expect(page.getByTestId('game-over')).toContainText('세포가 흡수되었습니다');
@@ -337,6 +368,7 @@ test.describe('desktop', () => {
     test('speed: achieved speed matches the target; changes while paused keep the game paused; Max is separate', async ({ page }) => {
       await page.goto('./#watch');
       await expect(page.getByTestId('dock')).toBeVisible();
+      await measurementLineup(page, 2);
       await page.getByTestId('toggle-bottom').click();
       await page.getByTestId('tab-performance').click();
       await page.getByRole('button', { name: '배속 조절' }).first().click();
@@ -449,7 +481,7 @@ const overlaps = (a: Box, b: Box) => a.x < b.x + b.width && b.x < a.x + a.width 
 test.describe('responsive layouts', () => {
   test.skip(({ isMobile }) => isMobile, 'runs its own viewports');
 
-  for (const [w, h] of [[360, 800], [390, 844], [430, 932], [768, 1024], [1280, 720], [1440, 900]]) {
+  for (const [w, h] of [[375, 667], [360, 800], [390, 844], [430, 932], [768, 1024], [1280, 720], [1440, 900], [1920, 1080]]) {
     test(`${w}×${h}: no horizontal overflow, controls do not overlap, canvas fully visible`, async ({ browser }) => {
       const { ctx, page, touch } = await openAt(browser, w, h);
       const errors = watchErrors(page);

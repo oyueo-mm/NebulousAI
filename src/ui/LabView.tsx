@@ -146,7 +146,7 @@ function ModelCard({ model }: { model: MlpModelFile }) {
               <YAxis yAxisId="l" orientation="right" tick={{ fontSize: 10 }} width={40} />
               <Tooltip contentStyle={{ fontSize: 11 }} labelFormatter={(v) => l.steps(Number(v))} />
               <Legend wrapperStyle={{ fontSize: 10 }} />
-              <Line yAxisId="r" dataKey="ep_rew_mean" name={l.curveReturn} stroke="#7c3aed" dot={false} isAnimationActive={false} />
+              <Line yAxisId="r" dataKey="ep_rew_mean" name={l.curveReturn} stroke="#A83557" dot={false} isAnimationActive={false} />
               <Line yAxisId="l" dataKey="ep_len_mean" name={l.curveLength} stroke="#94a3b8" dot={false} isAnimationActive={false} />
             </LineChart>
           </ResponsiveContainer>

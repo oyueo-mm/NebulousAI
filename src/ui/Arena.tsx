@@ -115,6 +115,7 @@ export function Arena(props: Props) {
   // Keyboard shortcuts (movement keys are handled by the canvas).
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
+      if (e.target instanceof Element && e.target.closest('#main-sidebar, .mobile-menu')) return;
       if (e.target instanceof HTMLInputElement || e.target instanceof HTMLSelectElement || e.target instanceof HTMLTextAreaElement) return;
       if (dialogOpen) {
         // Escape closes only the top-most dialog (help opened from the guide returns to the guide).
@@ -156,9 +157,9 @@ export function Arena(props: Props) {
   );
 
   return (
-    <div className="flex min-h-0 flex-1">
+    <div className="flex min-h-0 min-w-0 flex-1">
       <div className="relative flex min-w-0 flex-1 flex-col">
-        <div className="relative min-h-0 flex-1 overflow-hidden bg-[#f4f6fb]">
+        <div className="relative min-h-0 flex-1 overflow-hidden bg-white">
           <GameCanvas
             frames={sim.frames} humanId={humanId} followId={followId} selectedId={selectedId} overlays={ui.overlays} running={running}
             thornMass={DEFAULT_CONFIG.thornMass * DEFAULT_CONFIG.thornTriggerRatio} visionFor={visionFor} joystick={joystick}
@@ -276,10 +277,10 @@ export function Arena(props: Props) {
       </div>
       {ui.rightOpen && (
         // Narrow screens: the drawer covers the dock, so a backdrop tap or its close button dismisses it.
-        <div className="absolute inset-0 z-20 bg-slate-900/20 md:hidden" onClick={() => onUi({ ...ui, rightOpen: false })} data-testid="drawer-backdrop" />
+        <div className="absolute inset-0 z-20 bg-slate-900/20 lg:hidden" onClick={() => onUi({ ...ui, rightOpen: false })} data-testid="drawer-backdrop" />
       )}
       {ui.rightOpen && (
-        <aside className="absolute inset-y-0 right-0 z-20 w-[min(20rem,88vw)] border-l border-slate-200 bg-white shadow-xl md:static md:z-auto md:shadow-none">
+        <aside className="absolute inset-y-0 right-0 z-20 w-[min(20rem,88vw)] border-l border-slate-200 bg-white shadow-xl lg:static lg:z-auto lg:shadow-none">
           <SettingsPanel onClose={() => onUi({ ...ui, rightOpen: false })}
             mode={mode} arena={props.arena} onArena={props.onArena} ui={ui} onUi={onUi} models={props.models} dirty={dirty}
             onApply={props.onRestart} onSave={props.onSave} onLoad={props.onLoad} quick={quickActions}

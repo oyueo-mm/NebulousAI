@@ -29,7 +29,7 @@ describe('Korean UI dictionary covers everything the app can display', () => {
     expect(modes.size).toBeGreaterThan(6);
     for (const mode of modes) expect(HANGUL.test(t.mode(mode)) && !/[a-z]{3,}/.test(t.mode(mode)), mode).toBe(true);
     expect(notes.size).toBeGreaterThan(3);
-  });
+  }, 30000); // Three full 90-second matches also run on slower CI / shared developer machines.
 
   it('policies, actions and agent names are Korean (algorithm names kept)', () => {
     for (const k of POLICY_KINDS) {

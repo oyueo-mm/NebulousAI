@@ -7,6 +7,13 @@ reinforcement-learning agents survive and compete in a multi-agent arena.*
 
 **Live demo: https://oyueo-mm.github.io/NebulousAI/**
 
+The entry page is now a quiet, white home screen with an independent cell simulation and quick links
+to Play and Watch. Use the collapsible left sidebar to switch pages; phones and tablets use a menu
+drawer with keyboard focus management. The Cherry × Pistachio palette is shared across the app.
+Routes are `#/home`, `#/play`, `#/watch`, `#/tournament`, and `#/lab`; original `#play`-style links
+still work. The home animation respects reduced motion and pauses when hidden. Game rules, AI models,
+controls, and the experiment JSON format are unchanged.
+
 NebulousAI is inspired by the cell-survival genre (Agar.io, Nebulous.io). It is an independent project
 with its own rules, code and graphics; it is not affiliated with or endorsed by any commercial game,
 uses none of their code or assets, and never connects to a game server.

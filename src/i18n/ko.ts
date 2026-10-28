@@ -60,6 +60,15 @@ export const ko = {
     workerFailed: (reason: string) => `시뮬레이션 작업자(Worker)를 실행하지 못했습니다: ${reason}`,
     unknownError: '알 수 없는 오류',
   },
+  navigation: {
+    home: '홈', label: '주 메뉴', open: '메뉴 열기', close: '메뉴 닫기',
+    collapse: '사이드바 접기', expand: '사이드바 펼치기',
+  },
+  home: {
+    eyebrow: 'NEBULOUS AI', title: '세포들의 생존 경쟁.',
+    description: '플레이하고, 관찰하고, 학습하세요.',
+    animation: '먹이를 먹고 성장하며 서로 추격하고 피하는 세포들',
+  },
   policy: {
     name: (kind: ControllerKind) =>
       kind === 'human' ? '사람' : kind === 'external' ? '외부 제어' : `${POLICY_NAMES[kind].name} (${POLICY_NAMES[kind].en})`,

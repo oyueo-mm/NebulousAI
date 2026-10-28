@@ -6,16 +6,16 @@ export function Logo({ size = 28 }: { size?: number }) {
     <svg width={size} height={size} viewBox="0 0 32 32" aria-hidden="true">
       <defs>
         <radialGradient id="nb-core" cx="40%" cy="38%" r="70%">
-          <stop offset="0%" stopColor="#a5b4fc" />
-          <stop offset="55%" stopColor="#6366f1" />
-          <stop offset="100%" stopColor="#4338ca" />
+          <stop offset="0%" stopColor="#DD6B86" />
+          <stop offset="55%" stopColor="#A83557" />
+          <stop offset="100%" stopColor="#8D2C49" />
         </radialGradient>
       </defs>
       <circle cx="14" cy="17" r="10.5" fill="url(#nb-core)" />
-      <circle cx="14" cy="17" r="10.5" fill="none" stroke="#3730a3" strokeWidth="1.2" />
-      <circle cx="25.5" cy="7.5" r="3.6" fill="#38bdf8" stroke="#0369a1" strokeWidth="1" />
-      <circle cx="27" cy="18.5" r="2" fill="#34d399" stroke="#047857" strokeWidth="0.8" />
-      <path d="M7 13.5c2.5-2.8 7.4-3.4 10.6-1.2" fill="none" stroke="#e0e7ff" strokeWidth="1.6" strokeLinecap="round" opacity="0.85" />
+      <circle cx="14" cy="17" r="10.5" fill="none" stroke="#8D2C49" strokeWidth="1.2" />
+      <circle cx="25.5" cy="7.5" r="3.6" fill="#9CBF78" stroke="#7C9F58" strokeWidth="1" />
+      <circle cx="27" cy="18.5" r="2" fill="#FAC776" stroke="#D5A350" strokeWidth="0.8" />
+      <path d="M7 13.5c2.5-2.8 7.4-3.4 10.6-1.2" fill="none" stroke="#F9E8ED" strokeWidth="1.6" strokeLinecap="round" opacity="0.85" />
     </svg>
   );
 }
